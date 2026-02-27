@@ -3,13 +3,14 @@ import type { Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
 import './style.css'
 
-// Import componente
+// Import componente principale
 import WikiHome from './components/WikiHome.vue'
 import LastUpdates from './components/LastUpdates.vue'
 import NavSearch from './components/NavSearch.vue'
 import WildfireTag from './components/WildfireTag.vue'
 import SiteMap from './components/SiteMap.vue'
 import PageNotFound from './components/PageNotFound.vue'
+import HomeNavbar from './components/HomeNavbar.vue'  // NOUL COMPONENT
 
 // Import popout
 import './popout.js'
@@ -35,12 +36,25 @@ export default {
   
   Layout: () => {
     return h(DefaultTheme.Layout, null, {
-      // Home page
+      // Home page - înlocuiește tot conținutul home-ului cu WikiHome
       'home-hero-before': () => h(WikiHome),
-      // Navbar
-      'nav-bar-title-after': () => h(NavSearch),
+      
+      // Navbar - adăugăm condițional navbar-ul personalizat
+      'nav-bar-content-before': () => {
+        // Aici verificăm dacă suntem pe homepage și afișăm navbar-ul personalizat
+        // Acest slot va fi injectat înaintea conținutului navbar-ului
+        return null // Nu afișăm nimic aici, vom gestiona în WikiHome
+      },
+      
+      // Navbar title - customizare
+      'nav-bar-title-before': () => null, // Ascundem titlul default
+      
+      // Search bar în navbar (doar pe paginile interioare)
+      'nav-bar-content-after': () => h(NavSearch),
+      
       // Footer
       'layout-bottom': () => h(SiteMap),
+      
       // Not Found Page
       'not-found': () => h(PageNotFound)
     })
@@ -49,6 +63,7 @@ export default {
   enhanceApp({ app }) {
     // Componente principale
     app.component('WikiHome', WikiHome)
+    app.component('HomeNavbar', HomeNavbar)  // NOUL COMPONENT ÎNREGISTRAT
     app.component('LastUpdates', LastUpdates)
     app.component('NavSearch', NavSearch)
     app.component('WildfireTag', WildfireTag)

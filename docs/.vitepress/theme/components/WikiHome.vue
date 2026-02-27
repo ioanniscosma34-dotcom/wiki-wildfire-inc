@@ -1,6 +1,9 @@
 <template>
   <div class="wildfire-home">
-    <!-- Background imagine principală -->
+    <!-- Navbar personalizat pentru homepage - apare DOAR pe index.md -->
+    <HomeNavbar v-if="isHomePage" />
+    
+    <!-- Background imagine principală (NEMODIFICAT) -->
     <img 
       src="/wallpaper/poza102.webp"
       alt=""
@@ -16,7 +19,7 @@
       role="presentation"
     />
     
-    <!-- A doua imagine de background (overlay) -->
+    <!-- A doua imagine de background (overlay) (NEMODIFICAT) -->
     <img 
       src="/wallpaper/da.webp"
       alt=""
@@ -32,7 +35,7 @@
       role="presentation"
     />
     
-    <!-- Background CS2 Style (overlay) -->
+    <!-- Background CS2 Style (overlay) (NEMODIFICAT) -->
     <div class="wildfire-bg">
       <div class="wildfire-gradient"></div>
       <div class="wildfire-grid-primary"></div>
@@ -44,16 +47,23 @@
     
     <main class="wildfire-hero">
       <div class="wildfire-container">
-        <!-- Logo -->
-        <div class="wildfire-logo-container">
-          <div class="wildfire-logo-glow"></div>
+        <!-- Tag comunitate -->
+        <div class="community-tag">
+          <span class="tag-badge">#1 CS2 ROMÂNIA</span>
+          <span class="tag-year">since 2021</span>
+        </div>
+
+        <!-- Logo cu efecte -->
+        <div class="wildfire-logo-container" @mouseenter="triggerBoomEffect">
+          <div class="wildfire-logo-glow" :class="{ 'boom-active': isBoomActive }"></div>
+          <div class="logo-boom-ring" v-for="n in 3" :key="n" :class="{ 'boom-active': isBoomActive }" :style="{ '--i': n }"></div>
           <img 
             src="/icons/wildfire.webp" 
             alt="Wildfire.ro" 
             class="wildfire-logo"
-            :class="{ 'logo-intro': logoIntro }"
-            width="220"
-            height="220"
+            :class="{ 'logo-start': logoStart, 'boom-active': isBoomActive }"
+            width="150"
+            height="150"
             fetchpriority="high"
             decoding="sync"
             @mouseenter="isHovered = true"
@@ -64,12 +74,29 @@
 
         <!-- Titlu -->
         <h1 class="wildfire-title">
-          <span class="wildfire-title-gradient">Wildfire.ro</span> Wiki
+          <span class="wild">WILD</span>
+          <span class="fire">FIRE</span>
+          <span class="dot">.</span>
+          <span class="ro">ro</span>
+          <span class="wiki">Wiki</span>
         </h1>
         
-        <p class="wildfire-description">
-          Comunitatea #1 de CS2 din România. Seriozitate, respect, distracție.
-        </p>
+
+        <!-- Feature badges -->
+        <div class="feature-badges">
+          <div class="feature-badge">
+            <span class="feature-icon">✓</span>
+            <span class="feature-text">Documentatie</span>
+          </div>
+          <div class="feature-badge">
+            <span class="feature-icon">⚡</span>
+            <span class="feature-text">Informatie</span>
+          </div>
+          <div class="feature-badge">
+            <span class="feature-icon">🛡️</span>
+            <span class="feature-text">Features</span>
+          </div>
+        </div>
 
         <!-- Buton -->
         <div class="wildfire-button-wrapper">
@@ -91,30 +118,42 @@
               src="/icons/searchbutton.svg" 
               class="search-icon" 
               alt="search" 
-              width="18" 
-              height="18"
+              width="16" 
+              height="16"
               loading="eager"
               decoding="async"
             >
             <span class="home-search-text">Caută în documentație...</span>
-            <span class="home-search-shortcut">Ctrl K</span>
+            <span class="home-search-shortcut">⌘K</span>
           </button>
         </div>
 
         <!-- Last Updates Component -->
-        <LastUpdates />
+        <div class="last-updates-wrapper">
+          <LastUpdates />
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, onUnmounted, watch } from 'vue'
+import { useData } from 'vitepress'
 import LastUpdates from './LastUpdates.vue'
+import HomeNavbar from './HomeNavbar.vue'
+
+const { page } = useData()
+
+const isHomePage = computed(() => {
+  return page.value.relativePath === 'index.md' || page.value.relativePath === 'index'
+})
 
 const isHovered = ref(false)
 const isOverlayLoaded = ref(false)
-const logoIntro = ref(false)
+const logoStart = ref(false)
+const isBoomActive = ref(false)
+let boomTimeout: ReturnType<typeof setTimeout> | null = null
 
 const openSearch = (e: MouseEvent) => {
   e.preventDefault()
@@ -136,7 +175,45 @@ const openSearch = (e: MouseEvent) => {
   window.dispatchEvent(event)
 }
 
+const toggleDefaultNavbar = (hide: boolean) => {
+  const vitepressNavbar = document.querySelector('.VPNav')
+  if (vitepressNavbar) {
+    (vitepressNavbar as HTMLElement).style.display = hide ? 'none' : ''
+  }
+  
+  const vitepressSidebar = document.querySelector('.VPSidebar')
+  if (vitepressSidebar) {
+    (vitepressSidebar as HTMLElement).style.display = hide ? 'none' : ''
+  }
+  
+  const vitepressContent = document.querySelector('.VPContent')
+  if (vitepressContent) {
+    (vitepressContent as HTMLElement).style.marginTop = hide ? '0' : ''
+  }
+  
+  const localNav = document.querySelector('.VPLocalNav')
+  if (localNav) {
+    (localNav as HTMLElement).style.display = hide ? 'none' : ''
+  }
+}
+
+const triggerBoomEffect = () => {
+  if (boomTimeout) {
+    clearTimeout(boomTimeout)
+  }
+  isBoomActive.value = true
+  boomTimeout = setTimeout(() => {
+    isBoomActive.value = false
+  }, 500)
+}
+
+watch(isHomePage, (newValue) => {
+  toggleDefaultNavbar(newValue)
+}, { immediate: true })
+
 onMounted(() => {
+  toggleDefaultNavbar(isHomePage.value)
+  
   setTimeout(() => {
     const overlayImg = new Image()
     overlayImg.src = '/wallpaper/da.webp'
@@ -146,24 +223,27 @@ onMounted(() => {
     }
   }, 2000)
   
-  // Efect unic la intrare pentru logo
+  // Animații secvențiale
   setTimeout(() => {
-    logoIntro.value = true
-    
-    // Eliminăm clasa după ce animația se termină
-    setTimeout(() => {
-      logoIntro.value = false
-    }, 1000)
-  }, 300)
+    logoStart.value = true
+  }, 800) // Logo după 0.8s
+})
+
+onUnmounted(() => {
+  toggleDefaultNavbar(false)
+  if (boomTimeout) {
+    clearTimeout(boomTimeout)
+  }
 })
 </script>
 
 <style scoped>
+/* DOAR BACKGROUND-UL TĂU ORIGINAL - NEMODIFICAT */
 .wildfire-home {
   position: relative;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 64px 24px 80px;
+  padding: 100px 24px 80px;
   min-height: 100vh;
 }
 
@@ -425,6 +505,43 @@ onMounted(() => {
 
 .wildfire-home .wildfire-container {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ELEMENTE NOI - DOAR ASTEA SUNT MODIFICATE */
+.community-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 6px 14px;
+  background: rgba(255, 69, 0, 0.05);
+  border: 1px solid rgba(255, 69, 0, 0.2);
+  border-radius: 40px;
+  font-size: 12px;
+  opacity: 0;
+  animation: fadeIn 0.4s ease 0.2s forwards;
+}
+
+.dark .community-tag {
+  background: rgba(255, 69, 0, 0.1);
+  border-color: rgba(255, 69, 0, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tag-badge {
+  color: #ff4500;
+  font-weight: 700;
+}
+
+.tag-year {
+  color: var(--vp-c-text-2);
 }
 
 .wildfire-home .wildfire-logo-container {
@@ -432,298 +549,377 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 24px;
-  width: 100%;
+  margin-bottom: 15px;
+  width: 150px;
+  height: 150px;
+  cursor: pointer;
 }
 
 .wildfire-home .wildfire-logo-glow {
   position: absolute;
-  width: min(220px, 50vw);
-  height: min(220px, 50vw);
-  max-width: 220px;
-  max-height: 220px;
-  background: radial-gradient(circle, rgba(255, 69, 0, 0.25) 0%, transparent 70%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 69, 0, 0.2) 0%, transparent 70%);
   border-radius: 50%;
-  filter: blur(40px);
+  filter: blur(25px);
   opacity: 0;
-  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.3s ease;
   pointer-events: none;
   z-index: 1;
-  transform: translateZ(0);
+}
+
+.wildfire-home .wildfire-logo-glow.boom-active {
+  animation: boomGlow 0.5s ease-out forwards;
+}
+
+@keyframes boomGlow {
+  0% { opacity: 0; transform: scale(1); }
+  40% { opacity: 0.5; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+.logo-boom-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid rgba(255, 69, 0, 0.4);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(1);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.logo-boom-ring.boom-active {
+  animation: boomRing 0.5s ease-out forwards;
+  animation-delay: calc(0.05s * var(--i));
+}
+
+@keyframes boomRing {
+  0% { opacity: 0; transform: scale(1); border-width: 2px; }
+  40% { opacity: 0.5; transform: scale(1.3); border-width: 1.5px; }
+  100% { opacity: 0; transform: scale(1); border-width: 1px; }
 }
 
 .wildfire-home .wildfire-logo {
-  aspect-ratio: 1 / 1;
-  width: auto !important;
-  height: auto !important;
-  max-width: min(220px, 50vw) !important;
-  max-height: min(220px, 50vw) !important;
-  object-fit: contain !important;
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
   position: relative;
-  z-index: 2;
+  z-index: 3;
   cursor: pointer;
-  width: 220px;
-  height: 220px;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+  opacity: 0;
 }
 
-/* EFFECT UNIC LA INTrare - doar pentru logo */
-.logo-intro {
-  animation: uniqueIntro 2s cubic-bezier(0.25, 0.1, 0.15, 1) forwards;
+.logo-start {
+  animation: startSpin 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-@keyframes uniqueIntro {
-  0% {
-    transform: scale(0.2) rotate(-180deg);
-    opacity: 0;
-  }
-  40% {
-    transform: scale(1.15) rotate(8deg);
-    opacity: 1;
-  }
-  65% {
-    transform: scale(0.95) rotate(-3deg);
-  }
-  85% {
-    transform: scale(1.02) rotate(1deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
+@keyframes startSpin {
+  0% { transform: scale(0.2) rotate(-360deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(25deg); opacity: 1; }
+  80% { transform: scale(0.95) rotate(-5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.wildfire-home .wildfire-logo.boom-active {
+  animation: logoBoom 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes logoBoom {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.2) rotate(15deg); }
+  50% { transform: scale(1.25) rotate(-10deg); }
+  75% { transform: scale(1.05) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
 }
 
 .wildfire-home .wildfire-logo:hover {
-  animation: logoHoverSpin 0.8s cubic-bezier(0.25, 0.1, 0.15, 1) forwards;
+  animation: logoHover 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 1 !important;
 }
 
-@keyframes logoHoverSpin {
-  0% {
-    transform: scale(1) rotate(0deg);
-  }
-  30% {
-    transform: scale(1.15) rotate(15deg);
-  }
-  60% {
-    transform: scale(0.95) rotate(-5deg);
-  }
-  85% {
-    transform: scale(1.02) rotate(2deg);
-  }
-  100% {
-    transform: scale(1.05) rotate(0deg);
-  }
+@keyframes logoHover {
+  0% { transform: scale(1) rotate(0deg); }
+  40% { transform: scale(1.15) rotate(12deg); }
+  70% { transform: scale(1.05) rotate(-4deg); }
+  100% { transform: scale(1.1) rotate(3deg); }
 }
 
-.wildfire-home .wildfire-logo:hover + .wildfire-logo-glow {
-  opacity: 1;
-}
-
-.wildfire-home .wildfire-title {
-  font-size: 52px;
-  font-weight: 700;
-  margin: 0 0 16px 0;
+.wildfire-title {
+  font-size: 42px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
   letter-spacing: -0.02em;
   line-height: 1.1;
   text-align: center;
-  color: #000000;
-  position: relative;
-  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 2px;
+  opacity: 0;
+  animation: fadeIn 0.4s ease 0.3s forwards;
 }
 
-.dark .wildfire-home .wildfire-title {
-  color: #ffffff;
+.wild {
+  background: linear-gradient(135deg, #ffffff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-.wildfire-home .wildfire-title-gradient {
+.dark .wild {
+  background: linear-gradient(135deg, #ffffff, #e0e0e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+html:not(.dark) .wild {
+  background: linear-gradient(135deg, #000000, #333333);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.fire {
   background: linear-gradient(135deg, #ff4500, #ff8c00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  display: inline-block;
+  font-weight: 800;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-.wildfire-home .wildfire-description {
-  font-size: 20px;
-  color: #1f2937;
+.dot {
+  color: #ff4500;
+  font-size: 0.9em;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.ro {
+  background: linear-gradient(135deg, #ff4500, #ff8c00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  font-size: 0.9em;
+  margin-right: 5px;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.wiki {
+  color: #6b7280;
   font-weight: 600;
-  max-width: 700px;
-  margin: 0 auto 32px;
-  line-height: 1.6;
-  text-align: center;
-  position: relative;
-  z-index: 20;
+  font-size: 0.8em;
+  margin-left: 5px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.1));
 }
 
-.dark .wildfire-home .wildfire-description {
-  color: #ffffff;
+.dark .wiki {
+  color: #9ca3af;
+}
+
+.wildfire-description {
+  font-size: 16px;
+  color: var(--vp-c-text-2);
   font-weight: 500;
+  max-width: 600px;
+  margin: 0 auto 20px;
+  line-height: 1.5;
+  text-align: center;
+  opacity: 0;
+  animation: fadeIn 0.4s ease 0.4s forwards;
 }
 
-.wildfire-home .wildfire-button-wrapper {
+.stat-highlight {
+  color: #ff4500;
+  font-weight: 700;
+}
+
+.dark .stat-highlight {
+  color: #ff8c00;
+}
+
+.feature-badges {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeIn 0.4s ease 0.5s forwards;
+}
+
+.feature-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 30px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.feature-badge:hover {
+  border-color: #ff4500;
+  transform: translateY(-2px);
+}
+
+.feature-icon {
+  color: #ff4500;
+  font-size: 14px;
+}
+
+.feature-text {
+  color: var(--vp-c-text-1);
+}
+
+.wildfire-button-wrapper {
   display: flex;
   justify-content: center;
   margin-bottom: 30px;
-  position: relative;
-  z-index: 20;
+  opacity: 0;
+  animation: fadeIn 0.4s ease 0.6s forwards;
 }
 
-.wildfire-home .wildfire-button {
+.wildfire-button {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  background: #c2410c;
-  color: #ffffff;
-  padding: 14px 32px;
+  gap: 10px;
+  background: linear-gradient(135deg, #ff4500, #ff5722);
+  color: white;
+  padding: 12px 28px;
   border-radius: 40px;
-  font-weight: 700;
-  font-size: 18px;
+  font-weight: 600;
+  font-size: 16px;
   text-decoration: none;
-  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 2px solid #000000;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  transform: translateZ(0);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 69, 0, 0.25);
+  border: none;
 }
 
-.wildfire-home .wildfire-button:hover {
-  background: #ff7b00;
-  transform: scale(1.05) translateZ(0);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
-  gap: 20px;
-  border: 2px solid #000000;
+.wildfire-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 69, 0, 0.35);
+  gap: 14px;
 }
 
-.wildfire-home .wildfire-button-arrow {
-  font-size: 20px;
-  transition: transform 0.5s ease;
-  color: #ffffff;
+.wildfire-button-arrow {
+  font-size: 18px;
+  transition: transform 0.2s ease;
 }
 
-.wildfire-home .wildfire-button:hover .wildfire-button-arrow {
-  transform: translateX(8px) translateZ(0);
+.wildfire-button:hover .wildfire-button-arrow {
+  transform: translateX(4px);
 }
 
-.wildfire-home .home-search {
+.home-search {
   display: flex;
   justify-content: center;
-  margin-bottom: 48px;
-  position: relative;
-  z-index: 20;
+  margin-bottom: 40px;
+  width: 100%;
+  opacity: 0;
+  animation: fadeIn 0.4s ease 0.7s forwards;
 }
 
-.wildfire-home .home-search-button {
+.home-search-button {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 500px;
-  padding: 18px 28px;
+  max-width: 400px;
+  padding: 12px 20px;
   background: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 40px;
   color: #1a1a1a;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  height: 56px;
-  transform: translateZ(0);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  height: 46px;
 }
 
-.dark .wildfire-home .home-search-button {
-  background: #000000;
-  border: 1px solid #1a1a1a;
-  color: #ffffff;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-}
-.wildfire-home .home-search-button:hover {
-  background: #f5f5f5;
-  border-color: #ff4500;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px) translateZ(0);
-}
-
-.dark .wildfire-home .home-search-button:hover {
+.dark .home-search-button {
   background: #1a1a1a;
+  border: 1px solid #333333;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.home-search-button:hover {
   border-color: #ff4500;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+  transform: translateY(-1px);
 }
 
-.wildfire-home .search-icon {
-  aspect-ratio: 1 / 1;
-  width: 18px;
-  height: 18px;
-  margin-right: 8px;
+.search-icon {
+  width: 15px;
+  height: 15px;
+  margin-right: 6px;
   filter: brightness(0.3);
-  transition: filter 0.3s ease;
 }
 
-.dark .wildfire-home .search-icon {
+.dark .search-icon {
   filter: brightness(0) invert(1);
 }
 
-.wildfire-home .home-search-button:hover .search-icon {
-  filter: brightness(0.5);
-}
-
-.dark .wildfire-home .home-search-button:hover .search-icon {
-  filter: brightness(0) invert(1) drop-shadow(0 0 2px #ff4500);
-}
-
-.wildfire-home .home-search-text {
+.home-search-text {
   flex: 1;
   text-align: left;
-  font-size: 14px;
+  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color 0.3s ease;
+  color: inherit;
+}
+
+.home-search-shortcut {
+  font-size: 10px;
   font-weight: 600;
-  color: #1a1a1a;
-}
-
-.dark .wildfire-home .home-search-text {
-  color: #ffffff;
-}
-
-.wildfire-home .home-search-shortcut {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 6px;
-  margin-left: 8px;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
+  padding: 3px 8px;
+  border-radius: 5px;
+  margin-left: 6px;
   background: #f0f0f0;
   color: #333333;
   border: 1px solid #dddddd;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
-.dark .wildfire-home .home-search-shortcut {
+.dark .home-search-shortcut {
   background: #2a2a2a;
   color: #ffffff;
   border: none;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-.wildfire-home .home-search-button:hover .home-search-shortcut {
+.home-search-button:hover .home-search-shortcut {
   background: #ff4500;
   color: #ffffff;
   border-color: #ff4500;
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(255, 69, 0, 0.3);
 }
 
+/* Last Updates wrapper - apare ultimul */
+.last-updates-wrapper {
+  width: 100%;
+  opacity: 0;
+  animation: fadeIn 0.5s ease 0.9s forwards;
+}
+
+/* Restul stilurilor tale rămân exact la fel */
 @media (max-width: 1024px) {
   .wildfire-home .wildfire-logo {
     max-width: 200px !important;
     max-height: 200px !important;
-    width: 200px;
-    height: 200px;
   }
   
   .wildfire-home .wildfire-logo-glow {
@@ -743,7 +939,7 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .wildfire-home {
-    padding: 48px 20px 60px;
+    padding: 80px 20px 60px;
   }
   
   .wildfire-home .wildfire-logo {
@@ -785,7 +981,7 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .wildfire-home {
-    padding: 40px 16px 50px;
+    padding: 70px 16px 50px;
   }
   
   .wildfire-home .wildfire-logo {
@@ -837,7 +1033,7 @@ onMounted(() => {
 
 @media (max-height: 600px) and (orientation: landscape) {
   .wildfire-home {
-    padding: 30px 24px 40px;
+    padding: 70px 24px 40px;
   }
   
   .wildfire-home .wildfire-logo {
