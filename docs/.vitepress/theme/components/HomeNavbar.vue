@@ -1,5 +1,8 @@
 <template>
-  <header class="nav" :class="{ scrolled: isScrolled }">
+  <header class="nav" :class="{ 
+    scrolled: isScrolled,
+    'nav-hidden': isNavHidden && !isMobile 
+  }">
     <div class="nav-inner">
       <!-- LOGO -->
       <a href="/" class="nav-logo">
@@ -133,6 +136,8 @@ const route = useRoute()
 const open = ref(false)
 const isScrolled = ref(false)
 const isMobile = ref(false)
+const lastScrollY = ref(0)
+const isNavHidden = ref(false)
 
 const navItems = computed(() => theme.value.nav || [])
 const socialLinks = computed(() => theme.value.socialLinks || [])
@@ -153,8 +158,33 @@ const toggleTheme = () => {
   isDark.value = !isDark.value
 }
 
-const onScroll = () => isScrolled.value = window.scrollY > 20
-const checkMobile = () => isMobile.value = window.innerWidth <= 900
+const onScroll = () => {
+  const currentScrollY = window.scrollY
+  
+  // Update scrolled state for background change
+  isScrolled.value = currentScrollY > 20
+  
+  // Handle hide/show on scroll (only for desktop)
+  if (!isMobile.value) {
+    if (currentScrollY > lastScrollY.value && currentScrollY > 100) {
+      // Scrolling down - hide navbar
+      isNavHidden.value = true
+    } else {
+      // Scrolling up - show navbar
+      isNavHidden.value = false
+    }
+  }
+  
+  lastScrollY.value = currentScrollY
+}
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 900
+  // Reset navbar visibility when switching to mobile/desktop
+  if (isMobile.value) {
+    isNavHidden.value = false
+  }
+}
 
 watch(isMobile, (newVal) => {
   if (!newVal) open.value = false
@@ -243,6 +273,11 @@ onUnmounted(() => {
   justify-content: center;
   padding: 0 20px;
   pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.nav.nav-hidden {
+  transform: translateY(-100px);
 }
 
 .nav-inner {

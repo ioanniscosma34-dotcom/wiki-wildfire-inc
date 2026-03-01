@@ -1,3 +1,4 @@
+// config.mts
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
@@ -9,7 +10,7 @@ export default defineConfig({
   
   head: [
     ['link', { rel: 'icon', href: '/icons/wildfire.webp' }],
-    ['meta', { name: 'theme-color', content: '#ff4500' }],
+    ['meta', { name: 'theme-color', content: '#22c55e' }],
     
     // PRELOAD PENTRU LCP
     ['link', { 
@@ -24,7 +25,7 @@ export default defineConfig({
     ['link', { 
       rel: 'preload', 
       as: 'image', 
-      href: '/wallpaper/poza102.jpg', 
+      href: '/wallpaper/poza102.webp', 
       fetchpriority: 'low'
     }],
     
@@ -38,7 +39,105 @@ export default defineConfig({
     ['meta', { 
       name: 'viewport', 
       content: 'width=device-width, initial-scale=1.0, maximum-scale=5.0' 
-    }]
+    }],
+    
+    // SCRIPT PENTRU VERSIUNE
+    ['script', {}, `
+      window.wikiVersion = '2.0.0';
+    `],
+    
+    // CSS PENTRU STILIZARE ICONITE SI VERSIUNE
+    ['style', {}, `
+      .nav-icon {
+        vertical-align: middle;
+        margin-right: 8px;
+        width: 16px;
+        height: 16px;
+        filter: brightness(0.9);
+        transition: filter 0.2s;
+      }
+      
+      .nav-icon:hover {
+        filter: brightness(1.2);
+      }
+      
+      .version-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        background-color: var(--vp-c-bg-soft);
+        border: 1px solid var(--vp-c-divider);
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 10px;
+        color: var(--vp-c-text-1);
+        margin-left: 1rem;
+      }
+      
+      .version-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid #22c55e;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 10px;
+        color: #22c55e;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+        transition: all 0.2s ease;
+      }
+      
+      .version-tag:hover {
+        background: #22c55e;
+        color: white;
+      }
+      
+      .navbar-hint {
+        padding: 0.75rem 1rem;
+        background-color: var(--vp-c-bg-soft);
+        border-radius: 8px;
+        margin: 1rem;
+        font-size: 0.85rem;
+        border-left: 3px solid #22c55e;
+      }
+      
+      .navbar-hint strong {
+        color: #22c55e;
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+      
+      .navbar-hint p {
+        margin: 0;
+        color: var(--vp-c-text-2);
+      }
+      
+      .navbar-hint .hover-hint {
+        font-size: 0.75rem;
+        color: var(--vp-c-text-3);
+        font-style: italic;
+        margin-top: 0.25rem;
+      }
+      
+      .version-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid var(--vp-c-divider);
+        margin-top: 1rem;
+      }
+      
+      .version-label {
+        font-weight: 600;
+        color: var(--vp-c-text-1);
+      }
+      
+      .version-number {
+        color: #22c55e;
+        font-weight: 700;
+      }
+    `]
   ],
 
   lastUpdated: true,
@@ -220,6 +319,16 @@ export default defineConfig({
             link: '/market/payment-methods'
           },
         ]
+      },
+      
+      // SECȚIUNEA "RECENT GUI" CU VERSION TAG (ACELAȘI DESIGN CA ÎN FOOTER)
+      {
+        text: '<img src="/icons/recent.svg" class="nav-icon" width="16" height="16" alt=""> 2.0.0 <span class="version-tag">v2.0.0</span>',
+        collapsed: true,
+        items: [
+          { text: '<img src="/icons/vip.svg" class="nav-icon" width="16" height="16" alt=""> Actualizari', link: '/market/vip/2' },
+          { text: '<img src="/icons/vip.svg" class="nav-icon" width="16" height="16" alt=""> Cum poti contribui?', link: '/market/vip/3' },
+        ]
       }
     ],
 
@@ -228,39 +337,32 @@ export default defineConfig({
       text: '✏️ Editează această pagină pe GitHub'
     },
 
-    // SOCIAL LINKS - SVG INLINE
-      socialLinks: [
-        { 
-          icon: { 
-            svg: '<img src="/icons/discord.svg" class="nav-icon" width="20" height="20" alt="Discord">' 
-          }, 
-          link: 'https://discord.gg/Knu76DhE9h',
-          ariaLabel: 'Discord'
-        },
-        { 
-          icon: { 
-            svg: '<img src="/icons/web.svg" class="nav-icon" width="20" height="20" alt="Website">' 
-          }, 
-          link: 'https://www.wildfire.ro',
-          ariaLabel: 'Web Site'
-        },
-        // { TBD IN VIITOR - NU AVEM ÎNCĂ UN GRUP PE STEAM
-        //   icon: { 
-        //     svg: '<img src="/icons/steam.svg" class="nav-icon" width="20" height="20" alt="Steam">' 
-        //   }, 
-        //   link: 'https://steamcommunity.com/groups/wildfire',
-        //   ariaLabel: 'Steam'
-        // },
-        { 
-          icon: { 
-            svg: '<img src="/icons/tiktok.svg" class="nav-icon" width="20" height="20" alt="TikTok">' 
-          }, 
-          link: 'https://www.tiktok.com/@wildfire.ro',
-          ariaLabel: 'TikTok'
-        }
-      ],
+    // SOCIAL LINKS
+    socialLinks: [
+      { 
+        icon: { 
+          svg: '<img src="/icons/discord.svg" class="nav-icon" width="20" height="20" alt="Discord">' 
+        }, 
+        link: 'https://discord.gg/Knu76DhE9h',
+        ariaLabel: 'Discord'
+      },
+      { 
+        icon: { 
+          svg: '<img src="/icons/web.svg" class="nav-icon" width="20" height="20" alt="Website">' 
+        }, 
+        link: 'https://www.wildfire.ro',
+        ariaLabel: 'Web Site'
+      },
+      { 
+        icon: { 
+          svg: '<img src="/icons/tiktok.svg" class="nav-icon" width="20" height="20" alt="TikTok">' 
+        }, 
+        link: 'https://www.tiktok.com/@wildfire.ro',
+        ariaLabel: 'TikTok'
+      }
+    ],
 
-    // ✅ SEARCH ACTIVAT
+    // SEARCH
     search: {
       provider: 'local'
     },
@@ -270,7 +372,6 @@ export default defineConfig({
       label: 'Pe această pagină'
     },
 
-    // PENTRU A AFIȘA TOATE CATEGORIILE
     sidebarMenuLabel: 'Meniu',
     returnToTopLabel: 'Înapoi sus',
     darkModeSwitchLabel: 'Mod întunecat',
