@@ -11,7 +11,7 @@
       </div>
 
       <div class="cards-grid">
-        <!-- CARD 1: Top Contribuitor - AUTOMAT -->
+        <!-- RÂNDUL 1: Card 1 (Top Contribuitor) ocupă tot -->
         <div class="feature-card card-contributor clickable-card scroll-reveal" 
              @click="openProfile(topContributor.login)"
              :style="{ animationDelay: '0.2s' }"
@@ -52,102 +52,179 @@
           </div>
         </div>
 
-        <!-- CARD 2: Timeline - 4 update-uri AUTOMATE -->
-        <div class="feature-card card-timeline scroll-reveal" 
-             :style="{ animationDelay: '0.8s' }"
-             ref="card2Ref">
-          <div class="card-glow"></div>
-          <div class="card-border"></div>
-          
-          <div class="timeline-header">
-            <span class="timeline-icon">📋</span>
-            <h4 class="timeline-title">Ultimele 4 update-uri</h4>
-          </div>
-          
-          <div class="timeline-list">
-            <div v-for="(commit, index) in recentCommits" :key="commit.id" 
-                 class="timeline-item clickable-item" 
-                 @click="openCommit(commit.url)">
-              <div class="timeline-dot" :style="{ animationDelay: `${index * 0.2}s` }"></div>
-              <div class="timeline-content">
-                <div class="timeline-top">
-                  <span class="timeline-emoji">{{ commit.emoji }}</span>
-                  <span class="timeline-message">{{ commit.message }}</span>
+        <!-- RÂNDUL 2: Două coloane -->
+        <!-- Coloana STÂNGA: Card 2 (Timeline) și Card 5 (Contribuie) -->
+        <div class="left-column">
+          <!-- Card 2: Timeline -->
+          <div class="feature-card card-timeline scroll-reveal" 
+               :style="{ animationDelay: '0.8s' }"
+               ref="card2Ref">
+            <div class="card-glow"></div>
+            <div class="card-border"></div>
+            
+            <div class="timeline-header">
+              <span class="timeline-icon">📋</span>
+              <h4 class="timeline-title">Ultimele 4 update-uri</h4>
+            </div>
+            
+            <div class="timeline-list">
+              <div v-for="(commit, index) in recentCommits" :key="commit.id" 
+                   class="timeline-item clickable-item" 
+                   @click="openCommit(commit.url)">
+                <div class="timeline-dot" :style="{ animationDelay: `${index * 0.2}s` }"></div>
+                <div class="timeline-content">
+                  <div class="timeline-top">
+                    <span class="timeline-emoji">{{ commit.emoji }}</span>
+                    <span class="timeline-message">{{ commit.message }}</span>
+                  </div>
+                  <div class="timeline-meta">
+                    <span class="timeline-author">@{{ commit.author }}</span>
+                    <span class="timeline-date">{{ formatDate(commit.date) }}</span>
+                  </div>
                 </div>
-                <div class="timeline-meta">
-                  <span class="timeline-author">@{{ commit.author }}</span>
-                  <span class="timeline-date">{{ formatDate(commit.date) }}</span>
-                </div>
+                <span class="item-click-icon">→</span>
               </div>
-              <span class="item-click-icon">→</span>
+              <div v-if="isLoading && recentCommits.length === 0" class="timeline-loading">
+                <span class="loading-spinner"></span>
+                <span>Se încarcă...</span>
+              </div>
             </div>
-            <div v-if="isLoading && recentCommits.length === 0" class="timeline-loading">
-              <span class="loading-spinner"></span>
-              <span>Se încarcă...</span>
+            
+            <div class="view-all-updates-wrapper">
+              <a :href="`https://github.com/ianncxd/wiki-wildfire-inc/commits/main`" target="_blank" class="view-all-updates-btn">
+                <span>Vezi toate update-urile</span>
+                <span class="btn-arrow">→</span>
+              </a>
             </div>
           </div>
-          
-          <div class="view-all-updates-wrapper">
-            <a :href="`https://github.com/ianncxd/wiki-wildfire-inc/commits/main`" target="_blank" class="view-all-updates-btn">
-              <span>Vezi toate update-urile</span>
-              <span class="btn-arrow">→</span>
-            </a>
-          </div>
-        </div>
 
-        <!-- CARD 3: Statistici Rapide - AUTOMATE -->
-        <div class="feature-card card-stats-quick scroll-reveal" 
-             :style="{ animationDelay: '1.6s' }"
-             ref="card3Ref">
-          <div class="card-glow"></div>
-          <div class="card-border"></div>
-          
-          <div class="stats-quick-header">
-            <span class="stats-quick-icon">📊</span>
-            <h4 class="stats-quick-title">Repo în cifre</h4>
-          </div>
-          
-          <div class="stats-quick-grid">
-            <div class="stats-quick-item">
-              <span class="stats-quick-value">{{ formatNumber(repoStats.totalCommits) }}</span>
-              <span class="stats-quick-label">commits</span>
-            </div>
-            <div class="stats-quick-item">
-              <span class="stats-quick-value">{{ formatNumber(repoStats.contributors) }}</span>
-              <span class="stats-quick-label">contribuitori</span>
-            </div>
-            <div class="stats-quick-item">
-              <span class="stats-quick-value">{{ formatNumber(repoStats.files) }}</span>
-              <span class="stats-quick-label">fișiere</span>
-            </div>
-            <div class="stats-quick-item">
-              <span class="stats-quick-value">{{ formatNumber(repoStats.stars) }}</span>
-              <span class="stats-quick-label">stars</span>
+          <!-- Card 5: + Card (Contribuie) - SUB TIMELINE în stânga -->
+          <div class="feature-card card-plus clickable-card scroll-reveal" 
+               @click="openContributing"
+               :style="{ animationDelay: '2.4s' }"
+               ref="card4Ref">
+            <div class="card-glow"></div>
+            <div class="card-border"></div>
+            <div class="click-indicator">👆</div>
+            
+            <div class="plus-content">
+              <div class="plus-icon">+</div>
+              <h4 class="plus-title">Contribuie și tu</h4>
+              <p class="plus-description">Vrei să ajuți? Orice contribuție contează.</p>
+              <div class="plus-stats">
+                <span class="plus-stat">🔧 {{ repoStats.openIssues }} issue-uri deschise</span>
+                <span class="plus-stat">📝 {{ repoStats.openPRs }} PR-uri deschise</span>
+              </div>
+              <a :href="`https://github.com/ianncxd/wiki-wildfire-inc/issues`" target="_blank" class="plus-link clickable-link">
+                Află cum 
+                <span class="link-arrow">→</span>
+              </a>
             </div>
           </div>
         </div>
 
-        <!-- CARD 4: + Card (Contribuie) -->
-        <div class="feature-card card-plus clickable-card scroll-reveal" 
-             @click="openContributing"
-             :style="{ animationDelay: '2.4s' }"
-             ref="card4Ref">
-          <div class="card-glow"></div>
-          <div class="card-border"></div>
-          <div class="click-indicator">👆</div>
-          
-          <div class="plus-content">
-            <div class="plus-icon">+</div>
-            <h4 class="plus-title">Contribuie și tu</h4>
-            <p class="plus-description">Vrei să ajuți? Orice contribuție contează.</p>
-            <div class="plus-stats">
-              <span class="plus-stat">🔧 {{ repoStats.openIssues }} issue-uri deschise</span>
-              <span class="plus-stat">📝 {{ repoStats.openPRs }} PR-uri deschise</span>
+        <!-- Coloana DREAPTA: Card 3 (Repo în cifre) SUS și Card 4 (TOP 3) JOS -->
+        <div class="right-column">
+          <!-- Card 3: Statistici Rapide - SUS în dreapta -->
+          <div class="feature-card card-stats-quick scroll-reveal" 
+               :style="{ animationDelay: '1.6s' }"
+               ref="card3Ref">
+            <div class="card-glow"></div>
+            <div class="card-border"></div>
+            
+            <div class="stats-quick-header">
+              <span class="stats-quick-icon">📊</span>
+              <h4 class="stats-quick-title">Repo în cifre</h4>
             </div>
-            <a :href="`https://github.com/ianncxd/wiki-wildfire-inc/issues`" target="_blank" class="plus-link clickable-link">
-              Află cum 
-              <span class="link-arrow">→</span>
-            </a>
+            
+            <div class="stats-quick-grid">
+              <div class="stats-quick-item">
+                <span class="stats-quick-value">{{ formatNumber(repoStats.totalCommits) }}</span>
+                <span class="stats-quick-label">commits</span>
+              </div>
+              <div class="stats-quick-item">
+                <span class="stats-quick-value">{{ formatNumber(repoStats.contributors) }}</span>
+                <span class="stats-quick-label">contribuitori</span>
+              </div>
+              <div class="stats-quick-item">
+                <span class="stats-quick-value">{{ formatNumber(repoStats.files) }}</span>
+                <span class="stats-quick-label">fișiere</span>
+              </div>
+              <div class="stats-quick-item">
+                <span class="stats-quick-value">{{ formatNumber(repoStats.stars) }}</span>
+                <span class="stats-quick-label">stars</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: TOP 3 CONTRIBUITORI - JOS în dreapta -->
+          <div class="feature-card card-top3 scroll-reveal" 
+               :style="{ animationDelay: '2.0s' }"
+               ref="cardTop3Ref">
+            <div class="card-glow"></div>
+            <div class="card-border"></div>
+            
+            <div class="top3-header">
+              <span class="top3-icon">🏆</span>
+              <h4 class="top3-title">TOP 3 Contribuitori</h4>
+              <span class="top3-badge">Hall of Fame</span>
+            </div>
+            
+            <div class="top3-list">
+              <div v-for="(contributor, index) in topContributors" :key="contributor.login" 
+                   class="top3-item clickable-item" 
+                   :class="{ 'gold': index === 0, 'silver': index === 1, 'bronze': index === 2 }"
+                   @click="openProfile(contributor.login)">
+                
+                <div class="top3-rank">
+                  <span class="rank-badge" :class="'rank-' + (index + 1)">{{ index + 1 }}</span>
+                </div>
+                
+                <div class="top3-avatar">
+                  <img :src="`https://github.com/${contributor.login}.png`" :alt="contributor.login">
+                  <span class="avatar-glow"></span>
+                </div>
+                
+                <div class="top3-info">
+                  <span class="top3-name">{{ contributor.login }}</span>
+                  <span class="top3-commits">{{ formatNumber(contributor.contributions) }} commits</span>
+                </div>
+                
+                <span class="top3-arrow">→</span>
+              </div>
+              
+              <!-- Placeholder pentru useri lipsă -->
+              <template v-if="topContributors.length < 3 && !isLoading">
+                <div v-for="n in (3 - topContributors.length)" :key="'placeholder-'+n" 
+                     class="top3-item placeholder-item">
+                  <div class="top3-rank">
+                    <span class="rank-badge rank-placeholder">{{ topContributors.length + n }}</span>
+                  </div>
+                  <div class="top3-avatar placeholder-avatar">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+                      <path d="M5 20v-2a7 7 0 0 1 14 0v2" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                  </div>
+                  <div class="top3-info">
+                    <span class="top3-name placeholder-name">În așteptare</span>
+                    <span class="top3-commits placeholder-commits">0 commits</span>
+                  </div>
+                </div>
+              </template>
+              
+              <div v-if="isLoading && topContributors.length === 0" class="top3-loading">
+                <span class="loading-spinner"></span>
+                <span>Se încarcă topul...</span>
+              </div>
+            </div>
+            
+            <div class="top3-footer">
+              <a href="https://github.com/ianncxd/wiki-wildfire-inc/graphs/contributors" target="_blank" class="top3-link clickable-link">
+                Vezi toți contributorii
+                <span class="link-arrow">→</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -285,6 +362,7 @@ export default {
         prs: 0
       },
       recentCommits: [],
+      topContributors: [], // 🔥 NOU: Array pentru top 3 contribuitori
       isLoading: true,
       
       // Referințe pentru scroll reveal
@@ -292,6 +370,7 @@ export default {
       card2Ref: null,
       card3Ref: null,
       card4Ref: null,
+      cardTop3Ref: null, // 🔥 NOU: Referință pentru cardul Top 3
       headerRef: null,
       descRef: null,
       howToItem1Ref: null,
@@ -319,6 +398,7 @@ export default {
     this.card2Ref = this.$refs.card2Ref;
     this.card3Ref = this.$refs.card3Ref;
     this.card4Ref = this.$refs.card4Ref;
+    this.cardTop3Ref = this.$refs.cardTop3Ref; // 🔥 NOU
     this.headerRef = this.$refs.headerRef;
     this.descRef = this.$refs.descRef;
     this.howToItem1Ref = this.$refs.howToItem1Ref;
@@ -346,7 +426,7 @@ export default {
       const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
       
       const headers = {
-        'Authorization': `token ${token}`, // Folosește token-ul primit ca parametru
+        'Authorization': `token ${token}`,
         'Accept': 'application/vnd.github.v3+json'
       };
 
@@ -372,8 +452,8 @@ export default {
         if (!repoRes.ok) throw new Error(`Repo error: ${repoRes.status}`);
         const repoData = await repoRes.json();
         
-        // 3. Fetch contributors
-        const contributorsRes = await fetch(`${baseUrl}/contributors?per_page=1&anon=1`, { headers });
+        // 3. Fetch contributors (acum ia primii 3 pentru top)
+        const contributorsRes = await fetch(`${baseUrl}/contributors?per_page=3&anon=1`, { headers });
         if (!contributorsRes.ok) throw new Error(`Contributors error: ${contributorsRes.status}`);
         const contributors = await contributorsRes.json();
         
@@ -387,13 +467,19 @@ export default {
           }
         }
         
-        // Setează top contributor
+        // Setează top contributor (primul)
         if (contributors && contributors.length > 0) {
           this.topContributor = {
             login: contributors[0].login,
             contributions: contributors[0].contributions,
             prs: Math.floor(contributors[0].contributions * 0.1)
           };
+          
+          // 🔥 NOU: Setează top 3 contribuitori
+          this.topContributors = contributors.slice(0, 3).map(c => ({
+            login: c.login,
+            contributions: c.contributions
+          }));
         }
 
         // 4. Fetch total commits
@@ -451,6 +537,7 @@ export default {
         };
 
         console.log('✅ GitHub data loaded:', this.repoStats);
+        console.log('🏆 Top 3 contributors:', this.topContributors); // 🔥 NOU
 
       } catch (error) {
         console.error('❌ Eroare la fetch date GitHub:', error);
@@ -515,6 +602,7 @@ export default {
         this.card2Ref,
         this.card3Ref,
         this.card4Ref,
+        this.cardTop3Ref, // 🔥 NOU
         this.headerRef,
         this.descRef,
         this.howToItem1Ref,
@@ -1689,5 +1777,485 @@ export default {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+/* ===== CARD TOP 3 CONTRIBUITORI ===== */
+.card-top3 {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 18px;
+}
+
+.dark .card-top3 {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.top3-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.top3-icon {
+  font-size: 22px;
+}
+
+.top3-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--vp-c-text-1);
+  font-family: 'Orbitron', sans-serif;
+}
+
+.top3-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.top3-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.top3-item:hover {
+  background: rgba(255, 69, 0, 0.1);
+  transform: translateX(5px);
+  border-color: rgba(255, 69, 0, 0.3);
+}
+
+.top3-rank {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.rank-badge.rank-1 {
+  background: linear-gradient(135deg, #FFD700, #FDB931);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+}
+
+.rank-badge.rank-2 {
+  background: linear-gradient(135deg, #C0C0C0, #E8E8E8);
+  color: #333;
+  box-shadow: 0 2px 8px rgba(192, 192, 192, 0.4);
+}
+
+.rank-badge.rank-3 {
+  background: linear-gradient(135deg, #CD7F32, #B87333);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(205, 127, 50, 0.4);
+}
+
+.top3-avatar {
+  width: 28px;
+  height: 28px;
+}
+
+.top3-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #ff4500;
+}
+
+.top3-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.top3-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+  font-family: 'Orbitron', sans-serif;
+  line-height: 1.2;
+}
+
+.top3-commits {
+  font-size: 10px;
+  color: #ff8c00;
+}
+
+.top3-arrow {
+  font-size: 16px;
+  color: #ff4500;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: all 0.2s ease;
+}
+
+.top3-item:hover .top3-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.top3-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 69, 0, 0.15);
+}
+
+.top3-link {
+  color: #ff4500;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.top3-link:hover {
+  gap: 8px;
+}
+
+.top3-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  justify-content: center;
+}
+
+/* Top3 items staggered reveal */
+.card-top3.revealed .top3-item {
+  animation: slideInRight 0.5s ease forwards;
+  opacity: 0;
+  transform: translateX(-15px);
+}
+
+.card-top3.revealed .top3-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.card-top3.revealed .top3-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.card-top3.revealed .top3-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes slideInRight {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+/* Coloana dreaptă cu carduri verticale */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===== CARD TOP 3 CONTRIBUITORI ===== */
+.card-top3 {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 18px;
+}
+
+.dark .card-top3 {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.top3-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.top3-icon {
+  font-size: 22px;
+}
+
+.top3-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--vp-c-text-1);
+  font-family: 'Orbitron', sans-serif;
+  flex: 1;
+}
+
+.top3-badge {
+  background: linear-gradient(135deg, #ff4500, #ff8c00);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.top3-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.top3-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.top3-item.gold {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.top3-item.silver {
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.15), rgba(192, 192, 192, 0.05));
+  border-color: rgba(192, 192, 192, 0.3);
+}
+
+.top3-item.bronze {
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.15), rgba(205, 127, 50, 0.05));
+  border-color: rgba(205, 127, 50, 0.3);
+}
+
+.top3-item.placeholder-item {
+  opacity: 0.6;
+  cursor: default;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.top3-item:hover:not(.placeholder-item) {
+  transform: translateX(5px);
+  border-color: #ff4500;
+}
+
+.top3-rank {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.rank-badge.rank-1 {
+  background: linear-gradient(135deg, #FFD700, #FDB931);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+}
+
+.rank-badge.rank-2 {
+  background: linear-gradient(135deg, #C0C0C0, #E8E8E8);
+  color: #333;
+  box-shadow: 0 2px 8px rgba(192, 192, 192, 0.4);
+}
+
+.rank-badge.rank-3 {
+  background: linear-gradient(135deg, #CD7F32, #B87333);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(205, 127, 50, 0.4);
+}
+
+.rank-badge.rank-placeholder {
+  background: rgba(255, 255, 255, 0.1);
+  color: #666;
+  border: 1px dashed rgba(255, 69, 0, 0.3);
+}
+
+.top3-avatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.top3-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #ff4500;
+  object-fit: cover;
+}
+
+.placeholder-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 69, 0, 0.1);
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 69, 0, 0.3);
+  color: #ff4500;
+}
+
+.placeholder-avatar svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.5;
+}
+
+.avatar-glow {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ff4500, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.top3-item:hover .avatar-glow {
+  opacity: 0.5;
+}
+
+.top3-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.top3-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+  font-family: 'Orbitron', sans-serif;
+  line-height: 1.3;
+}
+
+.placeholder-name {
+  color: #666;
+  font-style: italic;
+}
+
+.top3-commits {
+  font-size: 11px;
+  color: #ff8c00;
+}
+
+.placeholder-commits {
+  color: #444;
+}
+
+.top3-arrow {
+  font-size: 16px;
+  color: #ff4500;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: all 0.2s ease;
+}
+
+.top3-item:hover:not(.placeholder-item) .top3-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.top3-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 69, 0, 0.15);
+  margin-top: 4px;
+}
+
+.top3-link {
+  color: #ff4500;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.top3-link:hover {
+  gap: 8px;
+}
+
+.top3-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  justify-content: center;
+  color: var(--vp-c-text-2);
+}
+
+/* Animații pentru top3 */
+.card-top3.revealed .top3-item {
+  animation: slideInRight 0.5s ease forwards;
+  opacity: 0;
+  transform: translateX(-15px);
+}
+
+.card-top3.revealed .top3-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.card-top3.revealed .top3-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.card-top3.revealed .top3-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes slideInRight {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+/* Coloane pentru grid */
+.left-column, .right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 </style>

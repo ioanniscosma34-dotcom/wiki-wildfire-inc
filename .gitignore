@@ -37,6 +37,3 @@ Desktop.ini
 .env.local
 .env.*.local
 
-# Ascunde toate componentele
-docs/.vitepress/theme/components/
-docs/.vitepress/theme/components/backups/
