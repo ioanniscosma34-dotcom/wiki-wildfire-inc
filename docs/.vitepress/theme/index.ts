@@ -3,6 +3,31 @@ import type { Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
 import './style.css'
 
+// 📝 Tipuri pentru TypeScript
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_GITHUB_TOKEN: string
+    }
+  }
+  
+  interface Window {
+    __GITHUB_TOKEN: string
+  }
+}
+
+// 🔥 Token-ul din .env - folosim import.meta.env pentru Vite
+const githubToken = import.meta.env.VITE_GITHUB_TOKEN
+console.log('🔥 Token în index.ts:', githubToken ? 'EXISTĂ' : 'LIPSEȘTE')
+if (githubToken) {
+  console.log('📦 Lungime token:', githubToken.length)
+}
+
+// Facem token-ul disponibil global pentru toate componentele
+if (typeof window !== 'undefined') {
+  window.__GITHUB_TOKEN = githubToken
+}
+
 // Import componente principale
 import WikiHome from './components/WikiHome.vue'
 import LastUpdates from './components/LastUpdates.vue'
@@ -95,5 +120,9 @@ export default {
     app.component('PageTagEmerald', PageTagEmerald)
     app.component('PageTagAmber', PageTagAmber)
     app.component('PageTagGray', PageTagGray)
+    
+    // 🔥 Adăugăm token-ul ca proprietate globală
+    app.config.globalProperties.$githubToken = githubToken
+    console.log('✅ Token adăugat în aplicația Vue')
   }
 } satisfies Theme

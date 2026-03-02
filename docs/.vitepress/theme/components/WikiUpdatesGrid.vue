@@ -1,4 +1,3 @@
-
 <template>
   <div class="wiki-home-updates">
     <!-- LEFT SIDE - CARDURI CU PERSONALITATE (MULT SPRE STÂNGA) -->
@@ -12,7 +11,7 @@
       </div>
 
       <div class="cards-grid">
-        <!-- CARD 1: Top Contribuitor - DINAMIC DIN API -->
+        <!-- CARD 1: Top Contribuitor - AUTOMAT -->
         <div class="feature-card card-contributor clickable-card scroll-reveal" 
              @click="openProfile(topContributor.login)"
              :style="{ animationDelay: '0.2s' }"
@@ -53,7 +52,7 @@
           </div>
         </div>
 
-        <!-- CARD 2: Timeline - 4 update-uri DINAMICE DIN API -->
+        <!-- CARD 2: Timeline - 4 update-uri AUTOMATE -->
         <div class="feature-card card-timeline scroll-reveal" 
              :style="{ animationDelay: '0.8s' }"
              ref="card2Ref">
@@ -96,7 +95,7 @@
           </div>
         </div>
 
-        <!-- CARD 3: Statistici Rapide (DINAMICE DIN API) -->
+        <!-- CARD 3: Statistici Rapide - AUTOMATE -->
         <div class="feature-card card-stats-quick scroll-reveal" 
              :style="{ animationDelay: '1.6s' }"
              ref="card3Ref">
@@ -270,16 +269,8 @@
 export default {
   name: 'WikiUpdatesGrid',
   
-  // 🔥 TOKEN-UL ÎN SETUP() - SIGUR
-  setup() {
-    const githubToken = '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';
-    console.log('Token în WikiUpdatesGrid:', 'merge');
-    return { githubToken };
-  },
-  
   data() {
     return {
-      // Date din API
       repoStats: {
         totalCommits: 0,
         contributors: 0,
@@ -311,6 +302,18 @@ export default {
   },
 
   async mounted() {
+    // 🔥 Token-ul vine din proprietatea globală adăugată în index.ts
+    const githubToken = this.$githubToken || window.__GITHUB_TOKEN || import.meta.env.VITE_GITHUB_TOKEN
+    
+    // Verifică dacă token-ul există
+    if (!githubToken) {
+      console.error('❌ Token GitHub lipsește! Verifică variabila VITE_GITHUB_TOKEN din .env');
+      this.isLoading = false;
+      return;
+    }
+
+    console.log('✅ WikiUpdatesGrid - Token găsit, lungime:', githubToken.length);
+
     // Setup referințe
     this.card1Ref = this.$refs.card1Ref;
     this.card2Ref = this.$refs.card2Ref;
@@ -327,19 +330,15 @@ export default {
     window.addEventListener('scroll', this.handleScroll);
     
     // Fetch ALL data from GitHub
-    await this.fetchAllGitHubData();
+    await this.fetchAllGitHubData(githubToken);
     
     setTimeout(() => {
       this.handleScroll();
     }, 100);
   },
 
-  beforeDestroy() {
-    window.removeEventListener('scroll', this.handleScroll);
-  },
-
   methods: {
-    async fetchAllGitHubData() {
+    async fetchAllGitHubData(token) {
       this.isLoading = true;
       
       const owner = 'ianncxd';
@@ -347,19 +346,18 @@ export default {
       const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
       
       const headers = {
-        'Authorization': `token ${this.githubToken}`,
+        'Authorization': `token ${token}`, // Folosește token-ul primit ca parametru
         'Accept': 'application/vnd.github.v3+json'
       };
 
       try {
-        console.log('Fetching GitHub data with token...');
+        console.log('📡 Fetching GitHub data with token...');
         
         // 1. Fetch commits (ultimele 4)
         const commitsRes = await fetch(`${baseUrl}/commits?per_page=4`, { headers });
         if (!commitsRes.ok) throw new Error(`Commits error: ${commitsRes.status}`);
         const commits = await commitsRes.json();
         
-        // Formatează commit-urile
         this.recentCommits = commits.map((commit, index) => ({
           id: commit.sha.substring(0, 7),
           message: commit.commit.message.split('\n')[0],
@@ -369,17 +367,17 @@ export default {
           url: commit.html_url
         }));
 
-        // 2. Fetch repo info (stars)
+        // 2. Fetch repo info
         const repoRes = await fetch(baseUrl, { headers });
         if (!repoRes.ok) throw new Error(`Repo error: ${repoRes.status}`);
         const repoData = await repoRes.json();
         
-        // 3. Fetch contributors (top contributor și număr total)
+        // 3. Fetch contributors
         const contributorsRes = await fetch(`${baseUrl}/contributors?per_page=1&anon=1`, { headers });
         if (!contributorsRes.ok) throw new Error(`Contributors error: ${contributorsRes.status}`);
         const contributors = await contributorsRes.json();
         
-        // Extrage numărul total de contributori din header
+        // Extrage numărul total de contributori
         const contributorsLink = contributorsRes.headers.get('Link');
         let totalContributors = 1;
         if (contributorsLink) {
@@ -394,11 +392,11 @@ export default {
           this.topContributor = {
             login: contributors[0].login,
             contributions: contributors[0].contributions,
-            prs: Math.floor(contributors[0].contributions * 0.1) // aproximare
+            prs: Math.floor(contributors[0].contributions * 0.1)
           };
         }
 
-        // 4. Fetch numărul total de commit-uri din header
+        // 4. Fetch total commits
         const allCommitsRes = await fetch(`${baseUrl}/commits?per_page=1`, { headers });
         const allCommitsLink = allCommitsRes.headers.get('Link');
         let totalCommits = 0;
@@ -422,7 +420,6 @@ export default {
         }
 
         // 6. Fetch issues și PR-uri
-        // Issue-uri deschise
         const issuesRes = await fetch(`${baseUrl}/issues?state=open&per_page=1`, { headers });
         const issuesLink = issuesRes.headers.get('Link');
         let openIssues = 0;
@@ -433,7 +430,6 @@ export default {
           }
         }
 
-        // PR-uri deschise
         const pullsRes = await fetch(`${baseUrl}/pulls?state=open&per_page=1`, { headers });
         const pullsLink = pullsRes.headers.get('Link');
         let openPRs = 0;
@@ -444,7 +440,7 @@ export default {
           }
         }
 
-        // Actualizează stats cu valorile AUTOMATE
+        // Actualizează stats
         this.repoStats = {
           totalCommits: totalCommits,
           contributors: totalContributors,
@@ -454,24 +450,10 @@ export default {
           openPRs: openPRs
         };
 
-        console.log('GitHub data loaded - 100% AUTOMAT:', this.repoStats);
+        console.log('✅ GitHub data loaded:', this.repoStats);
 
       } catch (error) {
-        console.error('Eroare la fetch date GitHub:', error);
-        // În caz de eroare, lasă valorile default (0)
-        this.repoStats = {
-          totalCommits: 0,
-          contributors: 1,
-          files: 0,
-          stars: 0,
-          openIssues: 0,
-          openPRs: 0
-        };
-        this.topContributor = {
-          login: 'ianncxd',
-          contributions: 0,
-          prs: 0
-        };
+        console.error('❌ Eroare la fetch date GitHub:', error);
       } finally {
         this.isLoading = false;
       }
@@ -520,7 +502,6 @@ export default {
       window.location.href = '/informatii/contributing';
     },
 
-    // Scroll reveal functions
     isElementInViewport(el) {
       if (!el) return false;
       const rect = el.getBoundingClientRect();
