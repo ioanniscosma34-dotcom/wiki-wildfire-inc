@@ -149,7 +149,7 @@
                 <a :href="`https://github.com/${commit.author}`" target="_blank" class="actor-name">{{ commit.author }}</a>
               </div>
                
-              
+
               <div class="actions">
                 <button class="action-liquid" @click="toggle(commit.id)">
                   <span class="action-icon">{{ open[commit.id] ? '−' : '+' }}</span>
@@ -1265,11 +1265,11 @@ html:not(.dark) .glass-card:hover {
   border: 1px solid var(--border-subtle);
   font-family: 'SF Mono', 'JetBrains Mono', monospace;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.8; /* MĂRIT PENTRU SPAȚII INTRE LINII */
   color: var(--text-secondary);
-  white-space: pre-wrap;
+  white-space: pre-wrap; /* PĂSTREAZĂ SPAȚIILE ȘI INDENTĂRILE */
   word-break: break-word;
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
 }
 
@@ -1278,8 +1278,26 @@ html:not(.dark) .glass-card:hover {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
-  white-space: pre-wrap;
+  white-space: pre-wrap; /* ASTA E CHEIA! PĂSTREAZĂ FORMATAREA */
   word-break: break-word;
+  line-height: 1.8;
+}
+
+/* STIL PENTRU BULLET POINTS */
+.details-pre ul, 
+.details-pre ol {
+  margin: 4px 0 8px 20px;
+  padding-left: 10px;
+}
+
+.details-pre li {
+  margin-bottom: 4px;
+  line-height: 1.6;
+}
+
+/* SPAȚIU INTRE SECȚIUNI */
+.details-pre p {
+  margin: 8px 0;
 }
 
 /* Custom scrollbar for description */
