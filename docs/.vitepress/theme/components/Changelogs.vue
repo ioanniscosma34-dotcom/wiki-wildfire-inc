@@ -172,7 +172,7 @@
               </div>
             </div>
 
-            <!-- EXPAND CONTENT -->
+            <!-- EXPAND CONTENT - AICI APAR FILELE -->
             <transition name="liquid">
               <div v-if="open[commit.id]" class="liquid-expand">
                 <!-- FILES -->
