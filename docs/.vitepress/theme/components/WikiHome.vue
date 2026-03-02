@@ -300,6 +300,12 @@
             <span class="divider-line"></span>
           </div>
         </section>
+        
+        <!-- NOUA COMPONENTĂ WikiUpdatesGrid -->
+        <div class="updates-grid-section reveal-element" ref="updatesGridRef">
+          <WikiUpdatesGrid :updates="recentCommits" :stats="stats" />
+        </div>
+        
       </div>
     </main>
 
@@ -316,6 +322,10 @@
           <span class="dot"></span>
           <span class="dot-label">Updates</span>
         </a>
+        <a href="#updates-grid" class="scroll-dot orbitron-font" :class="{ 'active': activeSection === 'updates-grid' }">
+          <span class="dot"></span>
+          <span class="dot-label">Latest</span>
+        </a>
       </div>
     </div>
   </div>
@@ -326,6 +336,7 @@ import { ref, onMounted, computed, onUnmounted, watch } from 'vue'
 import { useData } from 'vitepress'
 import LastUpdates from './LastUpdates.vue'
 import HomeNavbar from './HomeNavbar.vue'
+import WikiUpdatesGrid from './WikiUpdatesGrid.vue'
 
 const { page, theme } = useData()
 
@@ -345,10 +356,71 @@ const displayTitleArray = computed(() => displayTitle.value.split(''))
 const titleTyped = ref(false)
 const titleOriginal = 'WILDFIRE.RO DOCS'
 
+// Date pentru WikiUpdatesGrid
+const recentCommits = ref([
+  {
+    id: '29ffea1',
+    message: 'wikidocs core phase 2',
+    emoji: '⚡',
+    author: 'ianncxd',
+    date: '2026-03-01',
+    url: 'https://github.com/ianncxd/wiki-wildfire-inc/commit/29ffea1',
+    add: 1245,
+    del: 234,
+    files: 12,
+    branch: 'main'
+  },
+  {
+    id: '5ce19a6',
+    message: 'Final commit on wildfire`s official wikipedia!',
+    emoji: '🎉',
+    author: 'ianncxd',
+    date: '2026-02-18',
+    url: 'https://github.com/ianncxd/wiki-wildfire-inc/commit/5ce19a6',
+    add: 2890,
+    del: 0,
+    files: 3,
+    branch: 'main'
+  },
+  {
+    id: '9c4cccb',
+    message: 'WikiDocs core phase 1',
+    emoji: '📚',
+    author: 'ianncxd',
+    date: '2026-02-01',
+    url: 'https://github.com/ianncxd/wiki-wildfire-inc/commit/9c4cccb',
+    add: 2345,
+    del: 0,
+    files: 8,
+    branch: 'main'
+  },
+  {
+    id: 'd475a34',
+    message: 'big update la tags si camere',
+    emoji: '🔄',
+    author: 'ianncxd',
+    date: '2026-02-15',
+    url: 'https://github.com/ianncxd/wiki-wildfire-inc/commit/d475a34',
+    add: 1876,
+    del: 345,
+    files: 15,
+    branch: 'feature'
+  }
+])
+
+// Stats pentru WikiUpdatesGrid
+const stats = ref({
+  totalCommits: 30,
+  contributors: 1,
+  totalFiles: 124,
+  stars: 0
+})
+
 // Referințe pentru elemente
 const lastUpdatesRef = ref<HTMLElement | null>(null)
 const wikiSectionRef = ref<HTMLElement | null>(null)
 const wikiLeftRef = ref<HTMLElement | null>(null)
+const updatesGridRef = ref<HTMLElement | null>(null)
 const card1Ref = ref<HTMLElement | null>(null)
 const card2Ref = ref<HTMLElement | null>(null)
 const card3Ref = ref<HTMLElement | null>(null)
@@ -680,6 +752,7 @@ const applyRevealEffect = () => {
     lastUpdatesRef.value,
     wikiSectionRef.value,
     wikiLeftRef.value,
+    updatesGridRef.value,
     card1Ref.value,
     card2Ref.value,
     card3Ref.value,
@@ -714,6 +787,7 @@ const handleScroll = () => {
   
   const wikiSection = document.getElementById('wiki-section')
   const updatesSection = document.querySelector('.last-updates-wrapper')
+  const updatesGrid = updatesGridRef.value
   
   if (wikiSection) {
     const wikiRect = wikiSection.getBoundingClientRect()
@@ -729,6 +803,15 @@ const handleScroll = () => {
     if (updatesRect.top < windowHeight/2 && updatesRect.bottom > 0) {
       activeSection.value = 'updates'
     } else if (activeSection.value === 'updates') {
+      activeSection.value = ''
+    }
+  }
+  
+  if (updatesGrid) {
+    const gridRect = updatesGrid.getBoundingClientRect()
+    if (gridRect.top < windowHeight/2 && gridRect.bottom > 0) {
+      activeSection.value = 'updates-grid'
+    } else if (activeSection.value === 'updates-grid') {
       activeSection.value = ''
     }
   }
@@ -1267,7 +1350,7 @@ onUnmounted(() => {
   font-weight: 700;
 }
 
-/* Gradient pentru FIRE după typing - efect de foc lent și subtil */
+/* Gradient pentru FIRE după typing */
 .fire-gradient-text {
   background: linear-gradient(
     135deg,
@@ -1307,7 +1390,7 @@ onUnmounted(() => {
   animation: fireGlow 8s ease-in-out infinite;
 }
 
-/* Gradient pentru RO după typing - același efect lent și subtil */
+/* Gradient pentru RO după typing */
 .ro-gradient-text {
   background: linear-gradient(
     135deg,
@@ -1649,6 +1732,12 @@ onUnmounted(() => {
   margin: 20px 0 40px;
 }
 
+/* Secțiunea pentru WikiUpdatesGrid */
+.updates-grid-section {
+  width: 100%;
+  margin: 40px 0;
+}
+
 .section-divider {
   display: flex;
   align-items: center;
@@ -1952,41 +2041,46 @@ onUnmounted(() => {
   transform: translateY(0);
 }
 
+/* Delay-uri reduse pentru a apărea mai rapid */
 .wiki-left.revealed {
-  transition-delay: 0.1s;
+  transition-delay: 0.05s;
 }
 
 .wiki-card:nth-child(1).revealed {
-  transition-delay: 0.2s;
+  transition-delay: 0.1s;
 }
 
 .wiki-card:nth-child(2).revealed {
-  transition-delay: 0.3s;
+  transition-delay: 0.15s;
 }
 
 .wiki-card:nth-child(3).revealed {
-  transition-delay: 0.4s;
+  transition-delay: 0.2s;
 }
 
 .wiki-card:nth-child(4).revealed {
-  transition-delay: 0.5s;
+  transition-delay: 0.25s;
 }
 
 .wiki-card:nth-child(5).revealed {
-  transition-delay: 0.6s;
+  transition-delay: 0.3s;
 }
 
 .wiki-card:nth-child(6).revealed {
-  transition-delay: 0.7s;
+  transition-delay: 0.35s;
 }
 
 .last-updates-wrapper.revealed {
-  transition-delay: 0.8s;
+  transition-delay: 0.4s;
+}
+
+.updates-grid-section.revealed {
+  transition-delay: 0.3s;
 }
 
 .delayed-tag {
   opacity: 0;
-  animation: fadeInTag 0.5s ease 1.2s forwards;
+  animation: fadeInTag 0.5s ease 0.8s forwards; /* Redus de la 1.2s */
 }
 
 @keyframes fadeInTag {

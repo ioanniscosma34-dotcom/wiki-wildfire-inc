@@ -6,11 +6,14 @@ import './style.css'
 // Import componente principale
 import WikiHome from './components/WikiHome.vue'
 import LastUpdates from './components/LastUpdates.vue'
+import Changelogs from './components/Changelogs.vue'
+import LatestWikiUpdates from './components/WikiUpdatesGrid.vue'
+import WikiUpdatesGrid from './components/WikiUpdatesGrid.vue'
 import NavSearch from './components/NavSearch.vue'
 import WildfireTag from './components/WildfireTag.vue'
 import SiteMap from './components/SiteMap.vue'
 import PageNotFound from './components/PageNotFound.vue'
-import HomeNavbar from './components/HomeNavbar.vue'  // NOUL COMPONENT
+import HomeNavbar from './components/HomeNavbar.vue'
 
 // Import popout
 import './popout.js'
@@ -41,13 +44,11 @@ export default {
       
       // Navbar - adăugăm condițional navbar-ul personalizat
       'nav-bar-content-before': () => {
-        // Aici verificăm dacă suntem pe homepage și afișăm navbar-ul personalizat
-        // Acest slot va fi injectat înaintea conținutului navbar-ului
-        return null // Nu afișăm nimic aici, vom gestiona în WikiHome
+        return null
       },
       
       // Navbar title - customizare
-      'nav-bar-title-before': () => null, // Ascundem titlul default
+      'nav-bar-title-before': () => null,
       
       // Search bar în navbar (doar pe paginile interioare)
       'nav-bar-content-after': () => h(NavSearch),
@@ -63,8 +64,11 @@ export default {
   enhanceApp({ app }) {
     // Componente principale
     app.component('WikiHome', WikiHome)
-    app.component('HomeNavbar', HomeNavbar)  // NOUL COMPONENT ÎNREGISTRAT
+    app.component('HomeNavbar', HomeNavbar)
     app.component('LastUpdates', LastUpdates)
+    app.component('Changelogs', Changelogs)
+    app.component('LatestWikiUpdates', LatestWikiUpdates)
+    app.component('WikiUpdatesGrid', WikiUpdatesGrid)
     app.component('NavSearch', NavSearch)
     app.component('WildfireTag', WildfireTag)
     app.component('SiteMap', SiteMap)
