@@ -11,44 +11,52 @@
       </div>
 
       <div class="cards-grid">
-        <!-- CARD 1: Top Contribuitor - FORȚAT DIN STATS -->
-        <div class="feature-card card-contributor clickable-card scroll-reveal" 
-             @click="openProfile('ianncxd')"
-             :style="{ animationDelay: '0.2s' }"
-             ref="card1Ref">
+        <!-- CARD 1: Top Contribuitori - ACUM DINAMIC -->
+        <div v-for="(contributor, index) in topContributors" :key="contributor.login" 
+             class="feature-card card-contributor clickable-card scroll-reveal" 
+             :class="{ 'grid-col-span-2': index === 0 }"
+             @click="openProfile(contributor.login)"
+             :style="{ animationDelay: `${index * 0.2 + 0.2}s` }"
+             ref="contributorCardsRef">
           <div class="card-glow"></div>
           <div class="card-border"></div>
           <div class="click-indicator">👆</div>
           
           <div class="contributor-header">
             <div class="contributor-avatar">
-              <img src="https://github.com/ianncxd.png" alt="ianncxd">
+              <img :src="`https://github.com/${contributor.login}.png`" :alt="contributor.login">
               <span class="avatar-ring"></span>
-              <span class="avatar-crown">👑</span>
+              <span v-if="index === 0" class="avatar-crown">👑</span>
             </div>
             <div class="contributor-info">
-              <span class="contributor-badge">TOP CONTRIBUTOR</span>
-              <h4 class="contributor-name">ianncxd</h4>
+              <span class="contributor-badge">{{ getContributorBadge(index) }}</span>
+              <h4 class="contributor-name">{{ contributor.login }}</h4>
               <div class="contributor-stats">
                 <span class="contributor-stat">
                   <span class="stat-icon">📦</span>
-                  <span class="stat-value">{{ repoData.totalCommits }}</span>
+                  <span class="stat-value">{{ contributor.commits }}</span>
                   <span class="stat-label">commits</span>
                 </span>
                 <span class="contributor-stat">
-                  <span class="stat-icon">⭐</span>
-                  <span class="stat-value">{{ repoData.totalPRs }}</span>
+                  <span class="stat-icon">🔀</span>
+                  <span class="stat-value">{{ contributor.prs }}</span>
                   <span class="stat-label">PR-uri</span>
+                </span>
+                <span v-if="index === 0" class="contributor-stat">
+                  <span class="stat-icon">⭐</span>
+                  <span class="stat-value">{{ contributor.stars || 0 }}</span>
+                  <span class="stat-label">stars</span>
                 </span>
               </div>
             </div>
           </div>
           
           <div class="contributor-footer">
-            <a href="https://github.com/ianncxd" target="_blank" class="contributor-link clickable-link">
+            <a :href="`https://github.com/${contributor.login}`" target="_blank" class="contributor-link clickable-link">
               Vezi profil 
               <span class="link-arrow">→</span>
             </a>
+            <span class="contributor-quote">{{ getContributorQuote(index) }}</span>
           </div>
         </div>
 
@@ -185,6 +193,28 @@
           </p>
         </div>
 
+        <!-- Lista contribuitorilor principali -->
+        <div class="contributors-list-block scroll-reveal" 
+             :style="{ animationDelay: '0.4s' }"
+             ref="contributorsListRef">
+          <div class="contributors-list-header">
+            <span class="contributors-list-icon">👥</span>
+            <h4>Top Contribuitori</h4>
+          </div>
+          <div class="contributors-list">
+            <div v-for="(contributor, index) in topContributors.slice(0, 5)" :key="contributor.login" 
+                 class="contributor-list-item clickable-item" 
+                 @click="openProfile(contributor.login)">
+              <span class="contributor-rank">{{ index + 1 }}</span>
+              <img :src="`https://github.com/${contributor.login}.png`" :alt="contributor.login" class="contributor-list-avatar">
+              <span class="contributor-list-name">{{ contributor.login }}</span>
+              <span class="contributor-list-commits">{{ contributor.commits }} commits</span>
+              <span class="contributor-list-prs">{{ contributor.prs }} PR-uri</span>
+              <span class="item-click-icon">→</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Cum poți contribui -->
         <div class="how-to-block">
           <div class="how-to-item scroll-reveal" 
@@ -295,17 +325,19 @@ export default {
         totalStars: 0,
         contributorsCount: 0
       },
+      topContributors: [],
       openIssues: 0,
       openPRs: 0,
       isLoading: true,
       
       // Referințe pentru scroll reveal
-      card1Ref: null,
+      contributorCardsRef: [],
       card2Ref: null,
       card3Ref: null,
       card4Ref: null,
       headerRef: null,
       descRef: null,
+      contributorsListRef: null,
       howToItem1Ref: null,
       howToItem2Ref: null,
       howToItem3Ref: null,
@@ -338,12 +370,12 @@ export default {
 
   async mounted() {
     // Setup referințe
-    this.card1Ref = this.$refs.card1Ref;
     this.card2Ref = this.$refs.card2Ref;
     this.card3Ref = this.$refs.card3Ref;
     this.card4Ref = this.$refs.card4Ref;
     this.headerRef = this.$refs.headerRef;
     this.descRef = this.$refs.descRef;
+    this.contributorsListRef = this.$refs.contributorsListRef;
     this.howToItem1Ref = this.$refs.howToItem1Ref;
     this.howToItem2Ref = this.$refs.howToItem2Ref;
     this.howToItem3Ref = this.$refs.howToItem3Ref;
@@ -356,8 +388,8 @@ export default {
       this.handleScroll();
     }, 100);
 
-    // Fetch doar PR-uri și issues (contributors nu mai fetch-uim)
-    await this.fetchPRsAndIssues();
+    // Fetch toate datele GitHub
+    await this.fetchAllGitHubData();
   },
 
   beforeDestroy() {
@@ -365,7 +397,7 @@ export default {
   },
 
   methods: {
-    async fetchPRsAndIssues() {
+    async fetchAllGitHubData() {
       this.isLoading = true;
       
       const owner = 'ianncxd';
@@ -373,6 +405,31 @@ export default {
       const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
 
       try {
+        // Fetch contributors data
+        const contributorsRes = await fetch(`${baseUrl}/stats/contributors`);
+        
+        if (contributorsRes.ok) {
+          const contributorsData = await contributorsRes.json();
+          
+          // Procesăm contributorii
+          const contributors = await Promise.all(
+            contributorsData.map(async (c) => {
+              // Fetch PR-uri pentru fiecare contributor
+              const prs = await this.fetchContributorPRs(owner, repo, c.author.login);
+              return {
+                login: c.author.login,
+                avatar_url: c.author.avatar_url,
+                commits: c.total,
+                prs: prs,
+                stars: 0 // Putem adăuga și alte stats dacă vrem
+              };
+            })
+          );
+          
+          // Sortăm după numărul de commit-uri
+          this.topContributors = contributors.sort((a, b) => b.commits - a.commits);
+        }
+
         // PR-uri totale
         const pullsRes = await fetch(`${baseUrl}/pulls?state=all&per_page=1`);
         const linkHeader = pullsRes.headers.get('Link');
@@ -389,12 +446,42 @@ export default {
         this.openIssues = this.extractTotalCountFromLink(issuesLink);
 
       } catch (error) {
-        console.error('Eroare la fetch PR-uri și issues:', error);
+        console.error('Eroare la fetch date GitHub:', error);
+        // Date de backup
+        this.topContributors = [
+          {
+            login: 'ianncxd',
+            commits: this.repoData.totalCommits || 33,
+            prs: 12,
+            stars: 0
+          }
+        ];
         this.repoData.totalPRs = 1;
         this.openPRs = 0;
         this.openIssues = 0;
       } finally {
         this.isLoading = false;
+        
+        // Actualizăm referințele pentru cardurile contribuitorilor
+        this.$nextTick(() => {
+          this.contributorCardsRef = this.$refs.contributorCardsRef || [];
+        });
+      }
+    },
+
+    async fetchContributorPRs(owner, repo, username) {
+      try {
+        const res = await fetch(
+          `https://api.github.com/search/issues?q=repo:${owner}/${repo}+type:pr+author:${username}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          return data.total_count || 0;
+        }
+        return 0;
+      } catch (error) {
+        console.error(`Eroare la fetch PR-uri pentru ${username}:`, error);
+        return 0;
       }
     },
 
@@ -405,6 +492,20 @@ export default {
         return parseInt(lastPageMatch[1], 10);
       }
       return 1;
+    },
+
+    getContributorBadge(index) {
+      const badges = ['TOP CONTRIBUTOR', 'CONTRIBUTOR', 'CONTRIBUTOR'];
+      return badges[index] || `CONTRIBUTOR #${index + 1}`;
+    },
+
+    getContributorQuote(index) {
+      const quotes = [
+        '"cel mai activ"',
+        '"keep coding"',
+        '"nice work"'
+      ];
+      return quotes[index] || '"contribuție valoroasă"';
     },
 
     formatDate(date) {
@@ -443,12 +544,13 @@ export default {
 
     applyRevealEffect() {
       const elements = [
-        this.card1Ref,
+        ...(this.contributorCardsRef || []),
         this.card2Ref,
         this.card3Ref,
         this.card4Ref,
         this.headerRef,
         this.descRef,
+        this.contributorsListRef,
         this.howToItem1Ref,
         this.howToItem2Ref,
         this.howToItem3Ref,
@@ -544,6 +646,10 @@ export default {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+}
+
+.grid-col-span-2 {
+  grid-column: span 2;
 }
 
 /* ===== SCROLL REVEAL ANIMATION ===== */
@@ -645,6 +751,40 @@ export default {
 }
 
 @keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Contributors list staggered reveal */
+.contributors-list.revealed .contributor-list-item {
+  animation: listItemReveal 0.4s ease forwards;
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.contributor-list-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.contributor-list-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.contributor-list-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.contributor-list-item:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.contributor-list-item:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+@keyframes listItemReveal {
   to {
     opacity: 1;
     transform: translateX(0);
@@ -826,9 +966,8 @@ export default {
   transition: transform 0.3s ease;
 }
 
-/* ===== CARD 1: TOP CONTRIBUTOR ===== */
+/* ===== CARD CONTRIBUTOR ===== */
 .card-contributor {
-  grid-column: span 2;
   background: linear-gradient(145deg, rgba(255, 69, 0, 0.1), rgba(255, 140, 0, 0.05));
   backdrop-filter: blur(10px);
   padding: 24px;
@@ -913,6 +1052,7 @@ export default {
 .contributor-stats {
   display: flex;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .contributor-stat {
@@ -1275,6 +1415,87 @@ export default {
   font-weight: 600;
 }
 
+/* Contributors list */
+.contributors-list-block {
+  padding-left: 24px;
+  margin-top: 10px;
+}
+
+.contributors-list-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.contributors-list-icon {
+  font-size: 20px;
+  color: #ff4500;
+}
+
+.contributors-list-header h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--vp-c-text-1);
+  font-family: 'Orbitron', sans-serif;
+}
+
+.contributors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contributor-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 69, 0, 0.03);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  border-radius: 30px;
+  transition: all 0.2s ease;
+}
+
+.contributor-list-item:hover {
+  background: rgba(255, 69, 0, 0.08);
+  border-color: rgba(255, 69, 0, 0.3);
+}
+
+.contributor-rank {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ff4500;
+  min-width: 20px;
+  text-align: center;
+}
+
+.contributor-list-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ff4500;
+}
+
+.contributor-list-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vp-c-text-1);
+  flex: 1;
+}
+
+.contributor-list-commits {
+  font-size: 11px;
+  color: #ff4500;
+  font-weight: 600;
+}
+
+.contributor-list-prs {
+  font-size: 11px;
+  color: var(--vp-c-text-2);
+}
+
 /* ===== HOW TO ===== */
 .how-to-block {
   display: flex;
@@ -1561,7 +1782,7 @@ export default {
     grid-template-columns: 1fr;
   }
   
-  .card-contributor {
+  .grid-col-span-2 {
     grid-column: span 1;
   }
   
@@ -1600,28 +1821,9 @@ export default {
     max-width: 100%;
     padding: 0 20px;
   }
-}
-
-
-.timeline-loading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  color: var(--vp-c-text-2);
-  font-size: 13px;
-}
-
-.loading-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 69, 0, 0.3);
-  border-top-color: #ff4500;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  
+  .contributor-list-item {
+    flex-wrap: wrap;
+  }
 }
 </style>
