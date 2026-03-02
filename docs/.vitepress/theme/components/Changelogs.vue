@@ -176,7 +176,7 @@
                     <span class="label-text">Details</span>
                   </div>
                   <div class="description-details">
-                    <pre class="details-pre">{{ commit.description }}</pre>
+                    <div class="formatted-description">{{ commit.description }}</div>
                   </div>
                 </div>
 
@@ -1257,50 +1257,86 @@ html:not(.dark) .glass-card:hover {
   transform: scale(1.05);
 }
 
-/* DESCRIPTION DETAILS */
+/* DESCRIPTION DETAILS - VERSIUNE FINALĂ CU SPAȚII */
 .description-details {
   background: var(--bg-elevated);
   border-radius: 16px;
-  padding: 16px 20px;
+  padding: 20px 24px;
   border: 1px solid var(--border-subtle);
-  font-family: 'SF Mono', 'JetBrains Mono', monospace;
-  font-size: 13px;
-  line-height: 1.8; /* MĂRIT PENTRU SPAȚII INTRE LINII */
-  color: var(--text-secondary);
-  white-space: pre-wrap; /* PĂSTREAZĂ SPAȚIILE ȘI INDENTĂRILE */
-  word-break: break-word;
-  max-height: 400px;
+  max-height: 500px;
   overflow-y: auto;
 }
 
-.details-pre {
-  margin: 0;
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  white-space: pre-wrap; /* ASTA E CHEIA! PĂSTREAZĂ FORMATAREA */
-  word-break: break-word;
+.formatted-description {
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-size: 13px;
   line-height: 1.8;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-/* STIL PENTRU BULLET POINTS */
-.details-pre ul, 
-.details-pre ol {
-  margin: 4px 0 8px 20px;
-  padding-left: 10px;
+/* Spații între paragrafe */
+.formatted-description p {
+  margin: 12px 0;
 }
 
-.details-pre li {
+.formatted-description p:first-child {
+  margin-top: 0;
+}
+
+.formatted-description p:last-child {
+  margin-bottom: 0;
+}
+
+/* Liste */
+.formatted-description ul, 
+.formatted-description ol {
+  margin: 8px 0 16px 0;
+  padding-left: 25px;
+}
+
+.formatted-description li {
+  margin-bottom: 6px;
+  line-height: 1.7;
+}
+
+/* Bullet points colorate */
+.formatted-description ul li {
+  list-style-type: disc;
+  color: var(--primary);
+}
+
+.formatted-description ul li span {
+  color: var(--text-secondary);
+}
+
+/* Indentări pentru subpuncte */
+.formatted-description ul ul {
+  margin-top: 4px;
   margin-bottom: 4px;
-  line-height: 1.6;
+  padding-left: 20px;
 }
 
-/* SPAȚIU INTRE SECȚIUNI */
-.details-pre p {
-  margin: 8px 0;
+.formatted-description ul ul li {
+  list-style-type: circle;
+  color: var(--primary-soft);
 }
 
-/* Custom scrollbar for description */
+/* Spații între secțiuni */
+.formatted-description br {
+  display: block;
+  content: "";
+  margin-top: 8px;
+}
+
+/* Text îngroșat */
+.formatted-description strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Scrollbar */
 .description-details::-webkit-scrollbar {
   width: 6px;
 }
