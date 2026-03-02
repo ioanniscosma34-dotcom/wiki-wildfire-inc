@@ -14,14 +14,14 @@
   <div style="display: flex; align-items: center; gap: 5px;">
     <a href="/" style="color: var(--wf-orange); text-decoration: none;">Home</a>
     <span style="color: var(--wf-orange);">/</span>
-    <span>Introduction</span>
+    <span>Updates</span>
     <span style="color: var(--wf-orange);">/</span>
-    <span style="color: #e0e0e0;">Intrebari frecvente</span>
+    <span style="color: #e0e0e0;">Changelogs</span>
   </div>
   
   <div style="display: flex; align-items: center; gap: 6px;">
     <img src="/icons/introduction.svg" alt="introduction" class="nav-icon" style="width: 18px; height: 18px;">
-    <span style="font-size: 12px; color: var(--wf-gray);">Introduction</span>
+    <span style="font-size: 12px; color: var(--wf-gray);">Updates</span>
   </div>
 </div>
 
@@ -31,7 +31,7 @@
   
   <!-- TITLU PORTOCALIU -->
   <h1 style="font-size: 32px; margin: 0; color: #ff8c00; font-weight: 700;">
-    Intrebari frecvente
+    Changelogs Wikipedia
   </h1>
 </div>
 
