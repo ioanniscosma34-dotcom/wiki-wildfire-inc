@@ -43,7 +43,7 @@ export default defineConfig({
     
     // SCRIPT PENTRU VERSIUNE
     ['script', {}, `
-      window.wikiVersion = '2.0.0';
+      window.wikiVersion = '3.0.0';
     `],
     
     // CSS PENTRU STILIZARE ICONITE SI VERSIUNE
@@ -323,7 +323,7 @@ export default defineConfig({
       
       // SECȚIUNEA "RECENT GUI" CU VERSION TAG (ACELAȘI DESIGN CA ÎN FOOTER)
       {
-        text: '<img src="/icons/vsc.svg" class="nav-icon" width="16" height="16" alt=""> 2.0.0 <span class="version-tag">v2.0.0</span>',
+        text: '<img src="/icons/vsc.svg" class="nav-icon" width="16" height="16" alt=""> 3.0.0 <span class="version-tag">v3.0.0</span>',
         collapsed: true,
         items: [
           { text: '<img src="/icons/web.svg" class="nav-icon" width="16" height="16" alt=""> Actualizari', link: '/updates_wiki/updateswiki' },

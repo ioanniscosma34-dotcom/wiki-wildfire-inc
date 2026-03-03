@@ -129,7 +129,7 @@ const isHomePage = computed(() => {
 const currentYear = new Date().getFullYear()
 
 const siteDescription = computed(() => site.value.description)
-const wikiVersion = ref('2.0.0')
+const wikiVersion = ref('3.0.0')
 
 const socialLinks = computed(() => {
   const config = theme.value

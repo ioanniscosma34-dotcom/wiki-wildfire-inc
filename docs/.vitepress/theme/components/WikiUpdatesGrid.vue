@@ -228,6 +228,127 @@
           </div>
         </div>
       </div>
+
+      <!-- WIDGET ISSUES & PULL REQUESTS - VERSIUNE FINALĂ CU COUNT SEPARAT -->
+      <div class="issues-widget scroll-reveal feature-card" 
+           :style="{ animationDelay: '2.8s' }"
+           ref="issuesWidgetRef">
+        <div class="card-glow"></div>
+        <div class="card-border"></div>
+        
+        <div class="widget-header">
+          <div class="header-left">
+            <span class="widget-icon">📌</span>
+            <h4 class="widget-title">Activitate în timp real</h4>
+          </div>
+          <div class="header-right">
+            <span class="widget-badge">{{ repoStats.openIssues + repoStats.openPRs }} deschise</span>
+          </div>
+        </div>
+        
+        <div class="widget-stats-bar">
+          <button class="stat-chip clickable-button" @click="filterType = 'all'" :class="{ active: filterType === 'all' }">
+            <span>📊</span> Toate 
+            <span class="chip-count">{{ repoStats.openIssues + repoStats.openPRs }}</span>
+          </button>
+          <button class="stat-chip clickable-button" @click="filterType = 'issues'" :class="{ active: filterType === 'issues' }">
+            <span class="chip-icon issue">🐛</span> Issue-uri 
+            <span class="chip-count issue">{{ repoStats.openIssues }}</span>
+          </button>
+          <button class="stat-chip clickable-button" @click="filterType = 'prs'" :class="{ active: filterType === 'prs' }">
+            <span class="chip-icon pr">🔄</span> PR-uri 
+            <span class="chip-count pr">{{ repoStats.openPRs }}</span>
+          </button>
+        </div>
+        
+        <div class="widget-content">
+          <!-- ISSUE-URI -->
+          <div class="widget-section" v-show="filterType !== 'prs'">
+            <div v-for="issue in filteredIssues" :key="issue.id" 
+                 class="list-item clickable-item" 
+                 @click="openIssue(issue.url)">
+              
+              <div class="item-avatar">
+                <img :src="`https://github.com/${issue.author}.png`" :alt="issue.author">
+              </div>
+              
+              <div class="item-badge issue">#{{ issue.number }}</div>
+              
+              <div class="item-content">
+                <div class="item-title">{{ issue.title }}</div>
+                <div class="item-meta">
+                  <span>@{{ issue.author }}</span>
+                  <span>•</span>
+                  <span>{{ formatDate(issue.date) }}</span>
+                  <span v-if="issue.comments">• 💬 {{ issue.comments }}</span>
+                </div>
+              </div>
+              
+              <button class="item-button clickable-button" @click.stop="openIssue(issue.url)">→</button>
+            </div>
+            
+            <div v-if="filteredIssues.length === 0 && filterType !== 'prs'" class="empty-section">
+              <span>📪</span> Niciun issue deschis
+            </div>
+          </div>
+
+          <!-- PULL REQUESTS -->
+          <div class="widget-section" v-show="filterType !== 'issues'">
+            <div v-for="pr in filteredPRs" :key="pr.id" 
+                 class="list-item clickable-item" 
+                 @click="openPR(pr.url)">
+              
+              <div class="item-avatar">
+                <img :src="`https://github.com/${pr.author}.png`" :alt="pr.author">
+              </div>
+              
+              <div class="item-badge pr">#{{ pr.number }}</div>
+              
+              <div class="item-content">
+                <div class="item-title">{{ pr.title }}</div>
+                <div class="item-meta">
+                  <span>@{{ pr.author }}</span>
+                  <span>•</span>
+                  <span>{{ formatDate(pr.date) }}</span>
+                  <span v-if="pr.branch">• 🌿 {{ pr.branch }}</span>
+                </div>
+              </div>
+              
+              <button class="item-button clickable-button" @click.stop="openPR(pr.url)">→</button>
+            </div>
+            
+            <div v-if="filteredPRs.length === 0 && filterType !== 'issues'" class="empty-section">
+              <span>📪</span> Niciun PR deschis
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="quick-actions">
+          <button class="quick-action-btn clickable-button" @click="refreshData">
+            <span>🔄</span> Refresh
+          </button>
+          <button class="quick-action-btn clickable-button" @click="openNewIssue">
+            <span>🐛</span> New Issue
+          </button>
+          <button class="quick-action-btn clickable-button" @click="openNewPR">
+            <span>🔄</span> New PR
+          </button>
+        </div>
+
+        <div class="widget-footer">
+          <a href="https://github.com/ianncxd/wiki-wildfire-inc/issues" 
+             target="_blank" 
+             class="widget-link clickable-link">
+            Vezi toate issue-urile <span class="link-arrow">→</span>
+          </a>
+          <a href="https://github.com/ianncxd/wiki-wildfire-inc/pulls" 
+             target="_blank" 
+             class="widget-link clickable-link">
+            Vezi toate PR-urile <span class="link-arrow">→</span>
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- RIGHT SIDE - DESPRE CONTRIBUITORI (CENTRAT) -->
@@ -363,7 +484,10 @@ export default {
       },
       recentCommits: [],
       topContributors: [],
+      recentIssues: [],
+      recentPRs: [],
       isLoading: true,
+      filterType: 'all',
       
       // Referințe pentru scroll reveal
       card1Ref: null,
@@ -371,12 +495,31 @@ export default {
       card3Ref: null,
       card4Ref: null,
       cardTop3Ref: null,
+      issuesWidgetRef: null,
       headerRef: null,
       descRef: null,
       howToItem1Ref: null,
       howToItem2Ref: null,
       howToItem3Ref: null,
       ctaRef: null
+    }
+  },
+
+  computed: {
+    filteredIssues() {
+      if (this.filterType === 'prs') return [];
+      return this.recentIssues || [];
+    },
+    
+    filteredPRs() {
+      if (this.filterType === 'issues') return [];
+      return this.recentPRs || [];
+    },
+    
+    filteredItems() {
+      if (this.filterType === 'issues') return this.recentIssues;
+      if (this.filterType === 'prs') return this.recentPRs;
+      return [...this.recentIssues, ...this.recentPRs];
     }
   },
 
@@ -396,6 +539,7 @@ export default {
     this.card3Ref = this.$refs.card3Ref;
     this.card4Ref = this.$refs.card4Ref;
     this.cardTop3Ref = this.$refs.cardTop3Ref;
+    this.issuesWidgetRef = this.$refs.issuesWidgetRef;
     this.headerRef = this.$refs.headerRef;
     this.descRef = this.$refs.descRef;
     this.howToItem1Ref = this.$refs.howToItem1Ref;
@@ -448,20 +592,50 @@ export default {
         if (!repoRes.ok) throw new Error(`Repo error: ${repoRes.status}`);
         const repoData = await repoRes.json();
         
-        // 3. Fetch contributors (primii 3)
-        const contributorsRes = await fetch(`${baseUrl}/contributors?per_page=3&anon=1`, { headers });
-        if (!contributorsRes.ok) throw new Error(`Contributors error: ${contributorsRes.status}`);
-        const contributors = await contributorsRes.json();
+        // 3. Fetch contributors - VERSIUNE CORECTATĂ
+        let totalContributors = 0;
+        let contributors = [];
         
-        const contributorsLink = contributorsRes.headers.get('Link');
-        let totalContributors = 1;
-        if (contributorsLink) {
-          const match = contributorsLink.match(/&page=(\d+)>; rel="last"/);
-          if (match && match[1]) {
-            totalContributors = parseInt(match[1], 10);
+        try {
+          // Întâi, luăm primii 3 contribuitori pentru afișare
+          const contributorsRes = await fetch(`${baseUrl}/contributors?per_page=3&anon=1`, { headers });
+          if (contributorsRes.ok) {
+            contributors = await contributorsRes.json();
+            
+            // Acum facem un request separat pentru a afla numărul TOTAL de contribuitori
+            const totalContributorsRes = await fetch(`${baseUrl}/contributors?per_page=1&anon=1`, { headers });
+            
+            if (totalContributorsRes.ok) {
+              const totalLink = totalContributorsRes.headers.get('Link');
+              
+              if (totalLink) {
+                // Căutăm numărul ultimei pagini
+                const match = totalLink.match(/&page=(\d+)>; rel="last"/);
+                if (match && match[1]) {
+                  // Numărul total de contribuitori = ultima pagină (căci per_page=1)
+                  totalContributors = parseInt(match[1], 10);
+                } else {
+                  // Dacă nu există "last", înseamnă că e o singură pagină
+                  const data = await totalContributorsRes.json();
+                  totalContributors = data.length;
+                }
+              } else {
+                // Nu există header Link - înseamnă că e o singură pagină
+                const data = await totalContributorsRes.json();
+                totalContributors = data.length;
+              }
+            } else {
+              // Fallback la numărul din primul request
+              totalContributors = contributors.length;
+            }
           }
+        } catch (e) {
+          console.log('⚠️ Eroare la fetch contribuitori:', e);
+          totalContributors = 1;
+          contributors = [];
         }
         
+        // Setează top contributor și top 3 contribuitori
         if (contributors && contributors.length > 0) {
           this.topContributor = {
             login: contributors[0].login,
@@ -476,14 +650,20 @@ export default {
         }
 
         // 4. Fetch total commits
-        const allCommitsRes = await fetch(`${baseUrl}/commits?per_page=1`, { headers });
-        const allCommitsLink = allCommitsRes.headers.get('Link');
         let totalCommits = 0;
-        if (allCommitsLink) {
-          const match = allCommitsLink.match(/&page=(\d+)>; rel="last"/);
-          if (match && match[1]) {
-            totalCommits = parseInt(match[1], 10);
+        try {
+          const allCommitsRes = await fetch(`${baseUrl}/commits?per_page=1`, { headers });
+          if (allCommitsRes.ok) {
+            const allCommitsLink = allCommitsRes.headers.get('Link');
+            if (allCommitsLink) {
+              const match = allCommitsLink.match(/&page=(\d+)>; rel="last"/);
+              if (match && match[1]) {
+                totalCommits = parseInt(match[1], 10);
+              }
+            }
           }
+        } catch (e) {
+          console.log('⚠️ Eroare la fetch total commits:', e);
         }
 
         // 5. Fetch tree pentru numărul de fișiere
@@ -495,31 +675,23 @@ export default {
             totalFiles = treeData.tree?.filter(item => item.type === 'blob').length || 0;
           }
         } catch (e) {
-          console.log('Nu s-au putut încărca fișierele');
+          console.log('⚠️ Nu s-au putut încărca fișierele');
         }
 
         // 6. Fetch ISSUE-URI (separate de PR-uri)
         let openIssues = 0;
         try {
-          // Fetch mai multe pentru a acoperi toate posibilitățile
           const issuesRes = await fetch(`${baseUrl}/issues?state=open&per_page=100`, { headers });
           
           if (issuesRes.ok) {
             const allIssues = await issuesRes.json();
-            
-            // Filtrăm doar issue-urile reale (cele fără pull_request)
             const realIssues = allIssues.filter(issue => !issue.pull_request);
             openIssues = realIssues.length;
             
-            console.log('📊 Total items în issues API:', allIssues.length);
-            console.log('📊 PR-uri mascate ca issues:', allIssues.length - realIssues.length);
             console.log('📊 Issue-uri reale:', openIssues);
-          } else {
-            console.log('⚠️ Eroare la fetch issues:', issuesRes.status);
           }
         } catch (e) {
-          console.log('❌ Eroare la procesare issues:', e);
-          openIssues = 0;
+          console.log('⚠️ Eroare la fetch issues:', e);
         }
 
         // 7. Fetch PR-uri
@@ -535,11 +707,8 @@ export default {
               if (match && match[1]) {
                 openPRs = parseInt(match[1], 10);
               } else {
-                const checkPulls = await fetch(`${baseUrl}/pulls?state=open&per_page=1`, { headers });
-                if (checkPulls.ok) {
-                  const data = await checkPulls.json();
-                  openPRs = data.length;
-                }
+                const data = await pullsRes.json();
+                openPRs = data.length;
               }
             } else {
               const data = await pullsRes.json();
@@ -547,12 +716,54 @@ export default {
             }
             
             console.log('📊 PR-uri deschise:', openPRs);
-          } else {
-            console.log('⚠️ Eroare la fetch PR-uri:', pullsRes.status);
           }
         } catch (e) {
-          console.log('❌ Eroare la procesare PR-uri:', e);
-          openPRs = 0;
+          console.log('⚠️ Eroare la fetch PR-uri:', e);
+        }
+
+        // 8. Fetch recent issues (ultimele 5)
+        let recentIssues = [];
+        try {
+          const issuesRes = await fetch(`${baseUrl}/issues?state=open&sort=updated&direction=desc&per_page=5`, { headers });
+          if (issuesRes.ok) {
+            const issues = await issuesRes.json();
+            recentIssues = issues.filter(issue => !issue.pull_request).map(issue => ({
+              id: issue.id,
+              number: issue.number,
+              title: issue.title,
+              author: issue.user?.login,
+              date: issue.updated_at,
+              url: issue.html_url,
+              comments: issue.comments,
+              labels: issue.labels?.map(l => l.name) || [],
+              repo: repo
+            }));
+          }
+        } catch (e) {
+          console.log('⚠️ Eroare la fetch recent issues:', e);
+        }
+
+        // 9. Fetch recent PRs (ultimele 5)
+        let recentPRs = [];
+        try {
+          const prsRes = await fetch(`${baseUrl}/pulls?state=open&sort=updated&direction=desc&per_page=5`, { headers });
+          if (prsRes.ok) {
+            const prs = await prsRes.json();
+            recentPRs = prs.map(pr => ({
+              id: pr.id,
+              number: pr.number,
+              title: pr.title,
+              author: pr.user?.login,
+              date: pr.updated_at,
+              url: pr.html_url,
+              state: pr.state,
+              branch: pr.head?.ref,
+              commits: pr.commits,
+              labels: pr.labels?.map(l => l.name) || []
+            }));
+          }
+        } catch (e) {
+          console.log('⚠️ Eroare la fetch recent PRs:', e);
         }
 
         // Actualizează stats
@@ -565,8 +776,14 @@ export default {
           openPRs: openPRs
         };
 
+        this.recentIssues = recentIssues;
+        this.recentPRs = recentPRs;
+
         console.log('✅ GitHub data loaded:', this.repoStats);
         console.log('🏆 Top 3 contributors:', this.topContributors);
+        console.log('👥 Total contribuitori:', totalContributors);
+        console.log('📋 Issue-uri recente:', recentIssues.length);
+        console.log('🔄 PR-uri recente:', recentPRs.length);
 
       } catch (error) {
         console.error('❌ Eroare la fetch date GitHub:', error);
@@ -614,8 +831,49 @@ export default {
       window.open(url, '_blank');
     },
 
+    openIssue(url) {
+      window.open(url, '_blank');
+    },
+
+    openPR(url) {
+      window.open(url, '_blank');
+    },
+
     openContributing() {
       window.location.href = '/informatii/contributing';
+    },
+
+    getLabelColor(label) {
+      const colors = {
+        'bug': '#e74c3c',
+        'feature': '#2ecc71',
+        'enhancement': '#3498db',
+        'documentation': '#f39c12',
+        'help wanted': '#9b59b6',
+        'good first issue': '#1abc9c',
+        'question': '#e67e22',
+        'duplicate': '#7f8c8d',
+        'invalid': '#95a5a6',
+        'wontfix': '#34495e'
+      };
+      return colors[label.toLowerCase()] || '#95a5a6';
+    },
+
+    toggleStar(item) {
+      console.log('⭐ Starred:', item.number);
+    },
+
+    refreshData() {
+      const token = this.$githubToken || window.__GITHUB_TOKEN || import.meta.env.VITE_GITHUB_TOKEN;
+      this.fetchAllGitHubData(token);
+    },
+
+    openNewIssue() {
+      window.open('https://github.com/ianncxd/wiki-wildfire-inc/issues/new', '_blank');
+    },
+
+    openNewPR() {
+      window.open('https://github.com/ianncxd/wiki-wildfire-inc/compare', '_blank');
     },
 
     isElementInViewport(el) {
@@ -632,6 +890,7 @@ export default {
         this.card3Ref,
         this.card4Ref,
         this.cardTop3Ref,
+        this.issuesWidgetRef,
         this.headerRef,
         this.descRef,
         this.howToItem1Ref,
@@ -658,7 +917,7 @@ export default {
 }
 </script>
 
-  <style scoped>
+<style scoped>
 /* ===== EFFECT DE SCROLL REVEAL ===== */
 .scroll-reveal {
   opacity: 0;
@@ -1364,6 +1623,322 @@ export default {
   border-radius: 30px;
 }
 
+/* ===== ISSUES & PR WIDGET - ULTRA COMPACT ===== */
+.issues-widget {
+  padding: 16px;
+  margin-top: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+}
+
+.dark .issues-widget {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 69, 0, 0.15);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.widget-icon {
+  font-size: 16px;
+  color: #ff4500;
+}
+
+.widget-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--vp-c-text-1);
+  font-family: 'Orbitron', sans-serif;
+}
+
+.widget-badge {
+  background: linear-gradient(135deg, #ff4500, #ff8c00);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 30px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.widget-stats-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 40px;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.stat-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 30px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.stat-chip.active {
+  background: rgba(255, 69, 0, 0.15);
+  color: #ff4500;
+}
+
+.chip-count {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 5px;
+  border-radius: 20px;
+  font-size: 9px;
+  margin-left: 2px;
+}
+
+/* Culori pentru count-uri */
+.chip-icon.issue {
+  color: #3498db;
+}
+
+.chip-icon.pr {
+  color: #2ecc71;
+}
+
+.chip-count.issue {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498db;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.chip-count.pr {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.stat-chip.active .chip-count.issue,
+.stat-chip.active .chip-count.pr {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.widget-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.widget-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 30px;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  transition: all 0.2s ease;
+  min-height: 32px;
+}
+
+.list-item:hover {
+  background: rgba(255, 69, 0, 0.1);
+  transform: translateX(4px);
+  border-color: rgba(255, 69, 0, 0.3);
+}
+
+.item-avatar {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.item-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1.5px solid #ff4500;
+  object-fit: cover;
+}
+
+.item-badge {
+  padding: 2px 5px;
+  border-radius: 30px;
+  font-size: 8px;
+  font-weight: 600;
+  font-family: 'Orbitron', sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.item-badge.issue {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498db;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.item-badge.pr {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 1px;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 8px;
+  color: var(--text-tertiary);
+  line-height: 1.2;
+}
+
+.item-meta span:first-child {
+  color: #ff4500;
+}
+
+.item-button {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 69, 0, 0.1);
+  border: 1px solid rgba(255, 69, 0, 0.2);
+  border-radius: 50%;
+  color: #ff4500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+  font-size: 12px;
+}
+
+.item-button:hover {
+  background: #ff4500;
+  color: white;
+  transform: scale(1.05);
+}
+
+.empty-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 30px;
+  border: 1px dashed rgba(255, 69, 0, 0.2);
+  color: var(--text-tertiary);
+  font-size: 9px;
+  justify-content: center;
+  min-height: 32px;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.quick-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 69, 0, 0.2);
+  border-radius: 30px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.quick-action-btn:hover {
+  background: rgba(255, 69, 0, 0.1);
+  border-color: #ff4500;
+  color: #ff4500;
+}
+
+.widget-footer {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 69, 0, 0.15);
+}
+
+.widget-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 8px;
+  background: rgba(255, 69, 0, 0.05);
+  border: 1px solid rgba(255, 69, 0, 0.2);
+  border-radius: 30px;
+  color: #ff4500;
+  font-size: 9px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.widget-link:hover {
+  background: rgba(255, 69, 0, 0.1);
+  gap: 5px;
+}
+
+.widget-link:hover .link-arrow {
+  transform: translateX(4px);
+}
+
+.link-arrow {
+  transition: transform 0.2s ease;
+  font-size: 10px;
+}
+
 /* ===== RIGHT ZONE ===== */
 .text-zone {
   display: flex;
@@ -1737,6 +2312,19 @@ export default {
     margin-right: auto;
     max-width: 600px;
   }
+  
+  .widget-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .widget-footer {
+    flex-direction: column;
+  }
+  
+  .widget-link {
+    width: 100%;
+  }
 }
 
 @media (max-width: 700px) {
@@ -1783,228 +2371,23 @@ export default {
     max-width: 100%;
     padding: 0 20px;
   }
-}
-
-
-.timeline-loading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  color: var(--vp-c-text-2);
-  font-size: 13px;
-}
-
-.loading-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 69, 0, 0.3);
-  border-top-color: #ff4500;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-/* ===== CARD TOP 3 CONTRIBUITORI ===== */
-.card-top3 {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  padding: 18px;
-}
-
-.dark .card-top3 {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.top3-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 15px;
-}
-
-.top3-icon {
-  font-size: 22px;
-}
-
-.top3-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0;
-  color: var(--vp-c-text-1);
-  font-family: 'Orbitron', sans-serif;
-}
-
-.top3-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.top3-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 30px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(255, 69, 0, 0.1);
-}
-
-.top3-item:hover {
-  background: rgba(255, 69, 0, 0.1);
-  transform: translateX(5px);
-  border-color: rgba(255, 69, 0, 0.3);
-}
-
-.top3-rank {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.rank-badge {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  font-family: 'Orbitron', sans-serif;
-}
-
-.rank-badge.rank-1 {
-  background: linear-gradient(135deg, #FFD700, #FDB931);
-  color: #000;
-  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
-}
-
-.rank-badge.rank-2 {
-  background: linear-gradient(135deg, #C0C0C0, #E8E8E8);
-  color: #333;
-  box-shadow: 0 2px 8px rgba(192, 192, 192, 0.4);
-}
-
-.rank-badge.rank-3 {
-  background: linear-gradient(135deg, #CD7F32, #B87333);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(205, 127, 50, 0.4);
-}
-
-.top3-avatar {
-  width: 28px;
-  height: 28px;
-}
-
-.top3-avatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 2px solid #ff4500;
-}
-
-.top3-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.top3-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--vp-c-text-1);
-  font-family: 'Orbitron', sans-serif;
-  line-height: 1.2;
-}
-
-.top3-commits {
-  font-size: 10px;
-  color: #ff8c00;
-}
-
-.top3-arrow {
-  font-size: 16px;
-  color: #ff4500;
-  opacity: 0;
-  transform: translateX(-5px);
-  transition: all 0.2s ease;
-}
-
-.top3-item:hover .top3-arrow {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.top3-footer {
-  display: flex;
-  justify-content: center;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 69, 0, 0.15);
-}
-
-.top3-link {
-  color: #ff4500;
-  text-decoration: none;
-  font-size: 11px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.top3-link:hover {
-  gap: 8px;
-}
-
-.top3-loading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  color: var(--vp-c-text-2);
-  font-size: 13px;
-  justify-content: center;
-}
-
-/* Top3 items staggered reveal */
-.card-top3.revealed .top3-item {
-  animation: slideInRight 0.5s ease forwards;
-  opacity: 0;
-  transform: translateX(-15px);
-}
-
-.card-top3.revealed .top3-item:nth-child(1) {
-  animation-delay: 0.1s;
-}
-
-.card-top3.revealed .top3-item:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.card-top3.revealed .top3-item:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-@keyframes slideInRight {
-  to {
-    opacity: 1;
-    transform: translateX(0);
+  
+  .list-item {
+    flex-wrap: wrap;
   }
-}
-/* Coloana dreaptă cu carduri verticale */
-.right-column {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  
+  .item-meta {
+    gap: 8px;
+  }
+  
+  .item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .widget-stats-bar {
+    flex-wrap: wrap;
+  }
 }
 
 /* ===== CARD TOP 3 CONTRIBUITORI ===== */
@@ -2281,10 +2664,31 @@ export default {
     transform: translateX(0);
   }
 }
+
 /* Coloane pentru grid */
 .left-column, .right-column {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* List transitions */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.3s ease;
+}
+
+.list-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.list-move {
+  transition: transform 0.3s ease;
 }
 </style>

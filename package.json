@@ -1,10 +1,15 @@
 {
   "devDependencies": {
+    "@types/node": "^25.3.3",
+    "dotenv-cli": "^11.0.0",
     "vitepress": "^2.0.0-alpha.16"
   },
   "scripts": {
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
+    "docs:dev": "dotenv -e .env -- vitepress dev docs",
+    "docs:build": "dotenv -e .env -- vitepress build docs",
     "docs:preview": "vitepress preview docs"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1"
   }
 }
