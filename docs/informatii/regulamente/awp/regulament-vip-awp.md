@@ -18,7 +18,7 @@
     <span style="color: var(--wf-orange);">/</span>
     <a href="/informatii/regulamente/regulament-playeri" style="color: var(--wf-orange); text-decoration: none;">Regulament</a>
     <span style="color: var(--wf-orange);">/</span>
-    <span style="color: #e0e0e0;">ARENA</span>
+    <span style="color: #e0e0e0;">VIP</span>
   </div>
   
   <div style="display: flex; align-items: center; gap: 6px;">
@@ -33,7 +33,7 @@
   
   <!-- TITLU PORTOCALIU -->
   <h1 style="font-size: 32px; margin: 0; color: #ff8c00; font-weight: 700;">
-    Regulament ARENA
+    Regulament VIP
   </h1>
 </div>
 
@@ -44,8 +44,8 @@
   <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
     <img src="/icons/tag.svg" alt="tag" class="nav-icon" style="width: 18px; height: 18px;">
     <PageTagRed style="font-size: 11px; padding: 2px 8px;">rules</PageTagRed>
-    <PageTagGreen style="font-size: 11px; padding: 2px 8px;">arena</PageTagGreen>
-    <PageTagBlue style="font-size: 11px; padding: 2px 8px;">server</PageTagBlue>
+    <PageTagYellow style="font-size: 11px; padding: 2px 8px;">vip</PageTagYellow>
+    <PageTagYellow style="font-size: 11px; padding: 2px 8px;">premium</PageTagYellow>
   </div>
 
   <!-- Updated by in dreapta -->

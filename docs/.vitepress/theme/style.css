@@ -31,6 +31,38 @@
   --vp-home-hero-name-background: -webkit-linear-gradient(120deg, var(--wf-orange) 30%, var(--wf-orange-light));
   --vp-home-hero-image-background-image: linear-gradient(-45deg, var(--wf-orange) 50%, var(--wf-orange-light) 50%);
   --vp-home-hero-image-filter: blur(44px);
+  
+  /* LIGHT MODE - Fundaluri */
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #f6f6f7;
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-bg-soft: #f9f9f9;
+  
+  /* LIGHT MODE - Text */
+  --vp-c-text-1: #1f2a40;
+  --vp-c-text-2: #5d6c7e;
+  --vp-c-text-3: #8e9aab;
+  
+  /* LIGHT MODE - Chenare */
+  --vp-c-divider: #e2e8f0;
+  --vp-c-divider-light: #e9edf3;
+}
+
+.dark {
+  /* DARK MODE - Fundaluri */
+  --vp-c-bg: #0a0a0a;        /* Fundal principal (dreapta) */
+  --vp-c-bg-alt: #050505;    /* Fundal sidebar (stânga) */
+  --vp-c-bg-elv: #141414;    /* Fundal elemente elevate */
+  --vp-c-bg-soft: rgba(255, 69, 0, 0.05);
+  
+  /* DARK MODE - Text */
+  --vp-c-text-1: #ffffff;
+  --vp-c-text-2: var(--wf-gray-light);
+  --vp-c-text-3: var(--wf-gray);
+  
+  /* DARK MODE - Chenare */
+  --vp-c-divider: #2a2a2a;
+  --vp-c-divider-light: #1f1f1f;
 }
 
 @media (min-width: 640px) {
@@ -125,6 +157,34 @@
   width: 0 !important;
   height: 0 !important;
 }
+/* Elimină liniile dintre secțiuni */
+.VPSidebar .group + .group {
+  border-top: none !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Elimină orice bordură de la grupuri */
+.VPSidebar .group {
+  border-bottom: none !important;
+  border-top: none !important;
+}
+
+/* Elimină padding-ul suplimentar dintre secțiuni */
+.VPSidebar .items + .group {
+  margin-top: 0 !important;
+}
+
+/* Dacă ai separatoare și la iteme */
+.VPSidebarItem + .VPSidebarItem {
+  border-top: none !important;
+}
+
+/* Elimină orice linie orizontală din sidebar */
+.VPSidebar hr {
+  display: none !important;
+}
+
 
 /*=============================================================================
   6. SCROLLBAR INCENDIAR - GLOBAL
@@ -137,7 +197,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--wf-gray-dark) !important;
+  background: var(--vp-c-bg-alt) !important;
   border-left: 1px solid rgba(255, 69, 0, 0.2) !important;
 }
 
@@ -154,18 +214,13 @@
 }
 
 ::-webkit-scrollbar-corner {
-  background: var(--wf-gray-dark) !important;
+  background: var(--vp-c-bg-alt) !important;
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin !important;
-  scrollbar-color: #ff4500 var(--wf-gray-dark) !important;
-}
-
-/* Dark mode adjustments */
-.dark ::-webkit-scrollbar-track {
-  background: #000000 !important;
+  scrollbar-color: #ff4500 var(--vp-c-bg-alt) !important;
 }
 
 /*=============================================================================
@@ -373,3 +428,4 @@ body:not(.home) *,
 .aside-container::-webkit-scrollbar {
   display: none;
 }
+

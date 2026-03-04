@@ -171,26 +171,49 @@ export default defineConfig({
 
     sidebar: [
       // SECȚIUNEA INFORMAȚII
-      {
-        text: '<img src="/icons/wildfire.webp" class="nav-icon" width="16" height="16" alt=""> Informații',
-        collapsed: false,
-        items: [
-          { text: '<img src="/icons/despre.png" class="nav-icon" width="16" height="16" alt=""> Despre Wildfire', link: '/informatii/about' },
-          { text: '<img src="/icons/faq.svg" class="nav-icon" width="16" height="16" alt=""> Întrebări frecvente', link: '/informatii/faq' },
-          { 
-            text: '<img src="/icons/regulament.svg" class="nav-icon" width="16" height="16" alt=""> Regulament',
-            collapsed: true,
-            items: [
-              { text: '<img src="/icons/awp.svg" class="nav-icon" width="16" height="16" alt=""> Regulament AWP', link: '/informatii/regulamente/regulament-awp' },
-              { text: '<img src="/icons/go.svg" class="nav-icon" width="16" height="16" alt=""> Regulament GO', link: '/informatii/regulamente/regulament-go' },
-              { text: '<img src="/icons/arena.svg" class="nav-icon" width="16" height="16" alt=""> Regulament ARENA', link: '/informatii/regulamente/regulament-arena' },
-              { text: '<img src="/icons/staff.svg" class="nav-icon" width="16" height="16" alt=""> Regulament STAFF', link: '/informatii/regulamente/regulament-staff' },
-              { text: '<img src="/icons/playeri.svg" class="nav-icon" width="16" height="16" alt=""> Regulament Playeri', link: '/informatii/regulamente/regulament-playeri' },
-              { text: '<img src="/icons/vipregulament.svg" class="nav-icon" width="16" height="16" alt=""> Regulament VIP', link: '/informatii/regulamente/regulament-vip' }
-            ]
-          }
-        ]
-      },
+{
+  text: '<img src="/icons/wildfire.webp" class="nav-icon" width="16" height="16" alt=""> Informații',
+  collapsed: false,
+  items: [
+    { text: '<img src="/icons/despre.png" class="nav-icon" width="16" height="16" alt=""> Despre Wildfire', link: '/informatii/about' },
+    { text: '<img src="/icons/faq.svg" class="nav-icon" width="16" height="16" alt=""> Întrebări frecvente', link: '/informatii/faq' },
+    
+    // REGULAMENTE
+    { 
+      text: '<img src="/icons/regulament.svg" class="nav-icon" width="16" height="16" alt=""> Regulament',
+      collapsed: true,
+      items: [
+        {
+          text: 'Regulament GO',
+          collapsed: true,
+          items: [
+            { text: 'Regulament Jucatori', link: '/informatii/regulamente/go/regulament-go' },
+            { text: 'Regulament STAFF', link: '/informatii/regulamente/go/regulament-staff-go' },
+            { text: 'Regulament VIP', link: '/informatii/regulamente/go/regulament-vip-go' }
+          ]
+        },
+{
+          text: 'Regulament AWP',
+          collapsed: true,
+          items: [
+            { text: 'Regulament Jucatori', link: '/informatii/regulamente/awp/regulament-awp' },
+            { text: 'Regulament STAFF', link: '/informatii/regulamente/awp/regulament-staff-awp' },
+            { text: 'Regulament VIP', link: '/informatii/regulamente/awp/regulament-vip-awp' }
+          ]
+        },
+        {
+          text: 'Regulament ARENA',
+          collapsed: true,
+          items: [
+            { text: 'Regulament Jucatori', link: '/informatii/regulamente/arena/regulament-arena' },
+            { text: 'Regulament STAFF', link: '/informatii/regulamente/arena/regulament-staff-arena' },
+            { text: 'Regulament VIP', link: '/informatii/regulamente/arena/regulament-vip-arena' }
+          ]
+        },
+      ]
+    }
+  ]
+},
       
       // SECȚIUNEA CURRENCY
       {

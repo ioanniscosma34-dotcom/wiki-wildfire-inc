@@ -229,7 +229,7 @@
         </div>
       </div>
 
-      <!-- WIDGET ISSUES & PULL REQUESTS - VERSIUNE FINALĂ CU COUNT SEPARAT -->
+      <!-- WIDGET ISSUES & PULL REQUESTS -->
       <div class="issues-widget scroll-reveal feature-card" 
            :style="{ animationDelay: '2.8s' }"
            ref="issuesWidgetRef">
@@ -478,7 +478,7 @@ export default {
         openPRs: 0
       },
       topContributor: {
-        login: 'ianncxd',
+        login: '',
         contributions: 0,
         prs: 0
       },
@@ -597,8 +597,8 @@ export default {
         let contributors = [];
         
         try {
-          // Întâi, luăm primii 3 contribuitori pentru afișare
-          const contributorsRes = await fetch(`${baseUrl}/contributors?per_page=3&anon=1`, { headers });
+          // Întâi, luăm primii 5 contribuitori pentru afișare (ca să avem destui)
+          const contributorsRes = await fetch(`${baseUrl}/contributors?per_page=5&anon=1`, { headers });
           if (contributorsRes.ok) {
             contributors = await contributorsRes.json();
             
@@ -609,44 +609,60 @@ export default {
               const totalLink = totalContributorsRes.headers.get('Link');
               
               if (totalLink) {
-                // Căutăm numărul ultimei pagini
                 const match = totalLink.match(/&page=(\d+)>; rel="last"/);
                 if (match && match[1]) {
-                  // Numărul total de contribuitori = ultima pagină (căci per_page=1)
                   totalContributors = parseInt(match[1], 10);
                 } else {
-                  // Dacă nu există "last", înseamnă că e o singură pagină
                   const data = await totalContributorsRes.json();
                   totalContributors = data.length;
                 }
               } else {
-                // Nu există header Link - înseamnă că e o singură pagină
                 const data = await totalContributorsRes.json();
                 totalContributors = data.length;
               }
             } else {
-              // Fallback la numărul din primul request
               totalContributors = contributors.length;
             }
           }
         } catch (e) {
           console.log('⚠️ Eroare la fetch contribuitori:', e);
-          totalContributors = 1;
+          totalContributors = 0;
           contributors = [];
         }
         
-        // Setează top contributor și top 3 contribuitori
+        // Setează top contributor (primul) și top 3 contribuitori
         if (contributors && contributors.length > 0) {
+          // Setează top contributor (primul)
           this.topContributor = {
             login: contributors[0].login,
             contributions: contributors[0].contributions,
-            prs: Math.floor(contributors[0].contributions * 0.1)
+            prs: 0 // Vom calcula mai târziu
           };
           
+          // Setează top 3 contribuitori (sau câți avem)
           this.topContributors = contributors.slice(0, 3).map(c => ({
             login: c.login,
             contributions: c.contributions
           }));
+          
+          // Încerci să calculezi PR-urile pentru top contributor
+          try {
+            // Ia PR-urile create de utilizator
+            const prsRes = await fetch(`https://api.github.com/search/issues?q=repo:${owner}/${repo}+type:pr+author:${contributors[0].login}`, { headers });
+            if (prsRes.ok) {
+              const prsData = await prsRes.json();
+              this.topContributor.prs = prsData.total_count || 0;
+            }
+          } catch (e) {
+            console.log('⚠️ Nu s-au putut încărca PR-urile pentru top contributor');
+          }
+        } else {
+          // Fallback dacă nu sunt contribuitori
+          this.topContributor = {
+            login: 'Niciun contributor',
+            contributions: 0,
+            prs: 0
+          };
         }
 
         // 4. Fetch total commits
@@ -824,7 +840,9 @@ export default {
     },
 
     openProfile(username) {
-      if (username) window.open(`https://github.com/${username}`, '_blank');
+      if (username && username !== 'Niciun contributor') {
+        window.open(`https://github.com/${username}`, '_blank');
+      }
     },
 
     openCommit(url) {
@@ -1623,7 +1641,7 @@ export default {
   border-radius: 30px;
 }
 
-/* ===== ISSUES & PR WIDGET - ULTRA COMPACT ===== */
+/* ===== ISSUES & PR WIDGET ===== */
 .issues-widget {
   padding: 16px;
   margin-top: 16px;
@@ -1713,7 +1731,6 @@ export default {
   margin-left: 2px;
 }
 
-/* Culori pentru count-uri */
 .chip-icon.issue {
   color: #3498db;
 }
